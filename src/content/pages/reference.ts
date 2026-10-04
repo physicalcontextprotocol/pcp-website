@@ -124,8 +124,8 @@ export const serversPage: PageDef = {
       kind: "code",
       lang: "python",
       title: "any SDK, any server",
-      content: `client = PMCPClient("http://127.0.0.1:7000/mcp")
-client.initialize()
+      content: `client = PMCPClient()
+await client.connect_http("http://127.0.0.1:7000/mcp")
 
 # the response told you: robotId, what actuations exist,
 # what sensors exist, and which features (shadow,
@@ -146,7 +146,7 @@ export const registryPage: PageDef = {
     { kind: "h1", text: "Registry" },
     {
       kind: "p",
-      text: "The registry is a public index of PMCP servers: who runs them, what robots they front, what protocol versions they speak, and where to reach them. It exists for the same reason package registries exist — so an agent (or an operator) can discover endpoints without a side channel. It indexes servers; it does not vouch for them. A listing means \"this endpoint claims to exist\", not \"this endpoint is safe\" — conformance claims go through the [suite](/conformance), not the registry.",
+      text: "The registry is meant to be a public index of PMCP servers: who runs them, what robots they front, what protocol versions they speak, and where to reach them. It exists for the same reason package registries exist — so an agent (or an operator) can discover endpoints without a side channel. **There is no hosted public registry yet** — the service is real but unpublished, so today you run your own; see the state note below. It indexes servers; it does not vouch for them. A listing means \"this endpoint claims to exist\", not \"this endpoint is safe\" — conformance claims go through the [suite](/conformance), not the registry.",
     },
 
     { kind: "h2", text: "Listing your server" },
@@ -172,7 +172,7 @@ export const registryPage: PageDef = {
     {
       kind: "note",
       label: "honest state — do not expose the public API yet",
-      text: "The registry currently has **no authentication, no request-size limits, CORS `*` on POST/DELETE, and no host/port allowlist on `register/*`** — it is written up in the org's known-limitations list, and it must not be exposed to untrusted networks in this state. Run it inside your own perimeter until the auth and validation work lands; track it in the [`pmcp-registry`](https://github.com/physicalcontextprotocol/pmcp-registry) repository.",
+      text: "The registry currently has **no authentication, no request-size limits, CORS `*` on POST/DELETE, and no host/port allowlist on `register/*`** — it is written up in the org's known-limitations list, and it must not be exposed to untrusted networks in this state. For the same reason the `pmcp-registry` repository is **held private rather than published**: it is a discovery daemon you run yourself, not a curated public registry, and open write endpoints plus `CORS *` is not something to put on the internet under that name. Run it inside your own perimeter until the auth and validation work lands; track the remaining work in the [`pmcp-registry`](https://github.com/physicalcontextprotocol/pmcp-registry) repository, which becomes public once it earns it.",
     },
 
     { kind: "h2", text: "Scope" },
@@ -196,7 +196,7 @@ export const verificationPage: PageDef = {
     { kind: "h2", text: "Test status" },
     {
       kind: "p",
-      text: "[213/213 Python tests passing](https://github.com/physicalcontextprotocol/pmcp-org/actions) · [43/43 Rust tests passing](https://github.com/physicalcontextprotocol/pmcp-org/actions) · [42/42 conformance tests passing](https://github.com/physicalcontextprotocol/pmcp-org/actions) — Python suite across the 3.9–3.12 matrix, conformance suite against the mock server, Rust suite in `pmcp-core`. These run in blocking CI on every PR and every tag; the linked runs are the live state, not a screenshot of a good day. The tagged-release runs are the ones a conformance claim is anchored to.",
+      text: "[159/160 Python tests passing](https://github.com/physicalcontextprotocol/pmcp-python/actions) · [43/43 Rust tests passing](https://github.com/physicalcontextprotocol/pmcp-rust/actions) · [42/42 conformance tests passing](https://github.com/physicalcontextprotocol/pmcp-conformance/actions) — Python suite across the 3.9–3.12 matrix, conformance suite against the mock server, Rust suite in `physicalcontextprotocol`. The Python figure is 160 collected with 1 skip; every collected test imports the SDK and asserts on real behaviour — self-contained harnesses were moved out of the suite rather than counted. These run in blocking CI on every PR and every tag; the linked runs are the live state, not a screenshot of a good day. The tagged-release runs are the ones a conformance claim is anchored to.",
     },
 
     { kind: "h2", text: "TLA+ model checking" },

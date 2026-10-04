@@ -53,7 +53,7 @@ export const overviewPage: PageDef = {
 
     {
       kind: "p",
-      text: "[213/213 Python tests passing](/verification) · [43/43 Rust tests passing](/verification) · [TLA+ model-checked](/verification)",
+      text: "[159/160 Python tests passing](/verification) · [43/43 Rust tests passing](/verification) · [TLA+ model-checked](/verification)",
     },
   ],
 };
