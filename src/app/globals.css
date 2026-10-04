@@ -8,8 +8,8 @@
 :root {
   --bg: #000000;
   --fg: #ffffff;
-  --dim: #888888;
-  --dimmer: #555555;
+  --dim: #b0b0b0;
+  --dimmer: #767676;
   /* white at reduced opacity — still "white lines", used for hairlines */
   --line: rgba(255, 255, 255, 0.16);
   --line-strong: rgba(255, 255, 255, 0.34);
@@ -120,7 +120,7 @@ a:hover {
 /* Grayscale syntax tokens — dim colors on black, nothing loud */
 .tok-kw { color: #ffffff; font-weight: 500; }
 .tok-str { color: #b5b5b5; }
-.tok-com { color: #4d4d4d; font-style: italic; }
+.tok-com { color: #949494; font-style: italic; }
 .tok-num { color: #9d9d9d; }
 .tok-fn { color: #f2f2f2; }
 .tok-attr { color: #c9c9c9; }
