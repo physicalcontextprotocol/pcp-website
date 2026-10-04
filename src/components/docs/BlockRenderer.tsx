@@ -3,15 +3,8 @@
 import { Inline } from "./Inline";
 import { CodeBlock } from "./CodeBlock";
 import { TabsBlockView } from "./Tabs";
+import { slugify } from "@/lib/slug";
 import type { Block } from "@/content/types";
-
-export function slugify(text: string): string {
-  return text
-    .toLowerCase()
-    .replace(/[`*]/g, "")
-    .replace(/[^a-z0-9]+/g, "-")
-    .replace(/(^-|-$)/g, "");
-}
 
 export function BlockRenderer({ blocks }: { blocks: Block[] }) {
   return (
