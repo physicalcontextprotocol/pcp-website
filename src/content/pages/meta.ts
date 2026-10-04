@@ -22,7 +22,7 @@ export const governancePage: PageDef = {
     },
     {
       kind: "p",
-      text: "What exists today and can be verified rather than promised: decisions are recorded in the open — the org [CHANGELOG](https://github.com/physicalcontextprotocol/pmcp-org/blob/main/CHANGELOG.md) and [MIGRATION_MAP](https://github.com/physicalcontextprotocol/pmcp-org/blob/main/MIGRATION_MAP.md) document what changed and why, including the migration sequencing decisions that shaped the current repo layout. Until a formal governance document replaces this page, those artifacts plus the repository history are the authoritative record of how decisions were actually made.",
+      text: "What exists today and can be verified rather than promised: decisions are recorded in the open — the org [CHANGELOG](https://github.com/physicalcontextprotocol/.github/blob/main/CHANGELOG.md) and [MIGRATION_MAP](https://github.com/physicalcontextprotocol/pmcp-spec/blob/main/MIGRATION_MAP.md) document what changed and why, including the migration sequencing decisions that shaped the current repo layout. Until a formal governance document replaces this page, those artifacts plus the repository history are the authoritative record of how decisions were actually made.",
     },
   ],
 };
@@ -128,7 +128,7 @@ export const contributingPage: PageDef = {
     { kind: "h1", text: "Contributing" },
     {
       kind: "p",
-      text: "PMCP is an early-stage organization of nine repositories, and a lot of what \"contributing\" means is still shifting. What follows is the current guidance — the operative word being current. The full text lives in [`CONTRIBUTING.md`](https://github.com/physicalcontextprotocol/pmcp-org/blob/main/CONTRIBUTING.md) in the org repository; this page summarizes it and links the parts that live elsewhere.",
+      text: "PMCP is an early-stage organization of nine repositories, and a lot of what \"contributing\" means is still shifting. What follows is the current guidance — the operative word being current. The full text lives in [`CONTRIBUTING.md`](https://github.com/physicalcontextprotocol/.github/blob/main/CONTRIBUTING.md) in the organization's community-health repository; this page summarizes it and links the parts that live elsewhere. Each repository also carries its own `CONTRIBUTING.md` with the local constraints.",
     },
 
     { kind: "h2", text: "Where the work lives" },
