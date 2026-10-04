@@ -4,16 +4,16 @@ export const overviewPage: PageDef = {
   route: "/",
   title: "Overview",
   blocks: [
-    { kind: "h1", text: "PMCP" },
+    { kind: "h1", text: "PCP" },
 
     {
       kind: "p",
-      text: "**PMCP coordinates access to shared physical resources — space, tools, actuation — across multiple robots or actuated agents, through formally verified safety gates.**",
+      text: "**PCP coordinates access to shared physical resources — space, tools, actuation — across multiple robots or actuated agents, through formally verified safety gates.**",
     },
 
     {
       kind: "p",
-      text: "MCP solved tool-calling for software agents: a model can invoke a function, and the worst outcome is a bad string. Physical agents are different. Two robots granted the same space at the same time do not return errors — they collide. A gripper commanded past its force budget does not raise an exception — it breaks the part, or a finger. PMCP exists for that gap: a protocol layer that treats space, energy, and actuation as lease-guarded resources, checks every command against a declared constitution before it runs, and validates it in a shadow before it ever reaches hardware.",
+      text: "MCP solved tool-calling for software agents: a model can invoke a function, and the worst outcome is a bad string. Physical agents are different. Two robots granted the same space at the same time do not return errors — they collide. A gripper commanded past its force budget does not raise an exception — it breaks the part, or a finger. PCP exists for that gap: a protocol layer that treats space, energy, and actuation as lease-guarded resources, checks every command against a declared constitution before it runs, and validates it in a shadow before it ever reaches hardware.",
     },
 
     {

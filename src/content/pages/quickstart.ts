@@ -17,15 +17,15 @@ const py: Block[] = [
   { kind: "h3", text: "Request a lease, handle denial, release" },
   {
     kind: "p",
-    text: "Create a client against a PMCP server, run the JSON-RPC `initialize` handshake, then treat the zone you intend to act in as a leased resource. Acquire before you act; release when you are done — including on the denial path, so the zone is never left ambiguous.",
+    text: "Create a client against a PCP server, run the JSON-RPC `initialize` handshake, then treat the zone you intend to act in as a leased resource. Acquire before you act; release when you are done — including on the denial path, so the zone is never left ambiguous.",
   },
   {
     kind: "code",
     lang: "python",
     title: "lease.py",
-    content: `from pmcp import PMCPClient
+    content: `from pcp import PCPClient
 
-client = PMCPClient()                 # name/version only — no URL
+client = PCPClient()                 # name/version only — no URL
 await client.connect_http("http://arm-01.local:8080")
 # connect_http performs the JSON-RPC handshake itself;
 # protocolVersion is negotiated to "0.5"
@@ -96,9 +96,9 @@ const ts: Block[] = [
     kind: "code",
     lang: "typescript",
     title: "lease.ts",
-    content: `import { PMCPServerClient } from "physicalcontextprotocol";
+    content: `import { PCPServerClient } from "physicalcontextprotocol";
 
-const client = new PMCPServerClient({
+const client = new PCPServerClient({
   transport: "http",        // "stdio" | "websocket" | "http"
   serverUrl: "http://127.0.0.1:7000/mcp",
 });
@@ -228,8 +228,8 @@ async fn main() -> anyhow::Result<()> {
 static LATCHED: AtomicBool = AtomicBool::new(false);
 
 while let Some(message) = rx.recv().await {
-    // \`pmcp/estop\` arrives as a JSON-RPC notification (no "id").
-    if message["method"] == "pmcp/estop" {
+    // \`pcp/estop\` arrives as a JSON-RPC notification (no "id").
+    if message["method"] == "pcp/estop" {
         let active = message["params"]["active"].as_bool().unwrap_or(true);
         LATCHED.store(active, Ordering::SeqCst);
         eprintln!("E-STOP {}", if active { "ENGAGED" } else { "released" });
@@ -249,7 +249,7 @@ export const quickstartPage: PageDef = {
     { kind: "h1", text: "Quickstart" },
     {
       kind: "p",
-      text: "Working code in under five minutes, per language. All three tabs do the same thing against the same wire format: connect, request a lease, handle denial honestly, release, and arm an E-Stop handler. A PMCP server must be reachable at an HTTP endpoint — the reference servers in [`pmcp-servers`](/servers) are the fastest way to get one running.",
+      text: "Working code in under five minutes, per language. All three tabs do the same thing against the same wire format: connect, request a lease, handle denial honestly, release, and arm an E-Stop handler. A PCP server must be reachable at an HTTP endpoint — the reference servers in [`pmcp-servers`](/servers) are the fastest way to get one running.",
     },
     {
       kind: "p",

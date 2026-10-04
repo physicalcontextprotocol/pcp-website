@@ -7,7 +7,7 @@ export const conformancePage: PageDef = {
     { kind: "h1", text: "Conformance" },
     {
       kind: "p",
-      text: "\"PMCP Conformant\" has exactly one meaning: **the implementation passes the shared conformance suite against the wire-format schema.** Not \"inspired by PMCP\", not \"PMCP-compatible\" in the marketing sense — the suite is a public, versioned artifact in the [`pmcp-conformance`](https://github.com/physicalcontextprotocol/pmcp-conformance) repository, and its verdict is the claim. If a vendor's README says conformant and the suite says otherwise, the suite is right.",
+      text: "\"PCP Conformant\" has exactly one meaning: **the implementation passes the shared conformance suite against the wire-format schema.** Not \"inspired by PCP\", not \"PCP-compatible\" in the marketing sense — the suite is a public, versioned artifact in the [`pmcp-conformance`](https://github.com/physicalcontextprotocol/pmcp-conformance) repository, and its verdict is the claim. If a vendor's README says conformant and the suite says otherwise, the suite is right.",
     },
     {
       kind: "p",
@@ -28,7 +28,7 @@ export const conformancePage: PageDef = {
         ["2 — Actuations", "8", "`actuations/list`, `actuations/execute`, batch atomicity, unknown-actuation error path"],
         ["3 — Sensors", "7", "`sensors/list`, `sensors/read`, response schema, unknown-sensor error path"],
         ["4 — Leases", "6", "acquire / release / re-acquire, double-acquire protection, expiry semantics"],
-        ["5 — Metrics + Ping", "7", "required fields on `pmcp/metrics` and `pmcp/ping`, E-Stop engage / disengage semantics"],
+        ["5 — Metrics + Ping", "7", "required fields on `pcp/metrics` and `pcp/ping`, E-Stop engage / disengage semantics"],
         ["6 — Error codes", "7", "the P-MCP range (−33999…−33000), JSON-RPC 2.0 standard codes, response well-formedness"],
       ],
     },
@@ -51,7 +51,7 @@ pip install -e .
 #    http://127.0.0.1:7000/mcp
 
 # 3. point the suite at it — override the base URL via the
-#    mock_robot_server fixture or the PMCP_BASE_URL env var
+#    mock_robot_server fixture or the PCP_BASE_URL env var
 #    (see conftest.py for the exact hook)
 
 # 4. run
@@ -68,14 +68,14 @@ pytest --asyncio-mode=auto -v`,
       headers: ["SDK", "status"],
       rows: [
         ["Python", "conformant for 0.5 — the suite runs in blocking CI on every PR"],
-        ["Rust", "wire coverage exercised by the pmcp-core suite (43/43) and the conformance suite run manually against a Rust server"],
+        ["Rust", "wire coverage exercised by the pcp-core suite (43/43) and the conformance suite run manually against a Rust server"],
         ["TypeScript", "builds verified in CI; full conformance matrix run pending — the suite points at it the same way as any external implementation"],
       ],
     },
 
     {
       kind: "placeholder",
-      title: "\"PMCP Conformant\" badge",
+      title: "\"PCP Conformant\" badge",
       body: "A badge program — the right to display a mark, backed by a CI-verifiable conformance run against a tagged protocol version — is planned but not live. There is nothing to apply for yet, and self-asserting the mark before the program exists is explicitly not permitted.",
       willCover: [
         "who issues the badge and against which tagged suite version",
@@ -93,7 +93,7 @@ export const serversPage: PageDef = {
     { kind: "h1", text: "Servers" },
     {
       kind: "p",
-      text: "A \"PMCP server\" is the side that owns the robot: it holds the lease store, runs the gates, speaks the wire format, and refuses anything the constitution or the latch says to refuse. In practice it is a process you run next to (or on) the robot controller, exposing a single JSON-RPC endpoint. Every SDK client — Python, TypeScript, Rust, or third-party — speaks to it the same way.",
+      text: "A \"PCP server\" is the side that owns the robot: it holds the lease store, runs the gates, speaks the wire format, and refuses anything the constitution or the latch says to refuse. In practice it is a process you run next to (or on) the robot controller, exposing a single JSON-RPC endpoint. Every SDK client — Python, TypeScript, Rust, or third-party — speaks to it the same way.",
     },
     {
       kind: "p",
@@ -106,12 +106,12 @@ export const serversPage: PageDef = {
       codeFirstCol: true,
       headers: ["server", "what it is"],
       rows: [
-        ["robot_servers/", "per-robot adapters — the pattern to copy when porting PMCP to your own hardware"],
+        ["robot_servers/", "per-robot adapters — the pattern to copy when porting PCP to your own hardware"],
         ["reference_impl/", "the canonical in-repository server; the conformance suite's mock mirrors its behavior"],
         ["simulator/", "a simulated robot with honest physics timing — the fastest way to get an endpoint running locally"],
         ["examples/", "runnable end-to-end examples matching the [Quickstart](/quickstart)"],
-        ["gateway/", "protocol gateway for bridging non-PMCP controllers"],
-        ["ros2-bridge/", "ROS 2 integration — map ROS topics/services onto PMCP actuations and sensors"],
+        ["gateway/", "protocol gateway for bridging non-PCP controllers"],
+        ["ros2-bridge/", "ROS 2 integration — map ROS topics/services onto PCP actuations and sensors"],
       ],
     },
 
@@ -124,7 +124,7 @@ export const serversPage: PageDef = {
       kind: "code",
       lang: "python",
       title: "any SDK, any server",
-      content: `client = PMCPClient()
+      content: `client = PCPClient()
 await client.connect_http("http://127.0.0.1:7000/mcp")
 
 # the response told you: robotId, what actuations exist,
@@ -146,7 +146,7 @@ export const registryPage: PageDef = {
     { kind: "h1", text: "Registry" },
     {
       kind: "p",
-      text: "The registry is meant to be a public index of PMCP servers: who runs them, what robots they front, what protocol versions they speak, and where to reach them. It exists for the same reason package registries exist — so an agent (or an operator) can discover endpoints without a side channel. **There is no hosted public registry yet** — the service is real but unpublished, so today you run your own; see the state note below. It indexes servers; it does not vouch for them. A listing means \"this endpoint claims to exist\", not \"this endpoint is safe\" — conformance claims go through the [suite](/conformance), not the registry.",
+      text: "The registry is meant to be a public index of PCP servers: who runs them, what robots they front, what protocol versions they speak, and where to reach them. It exists for the same reason package registries exist — so an agent (or an operator) can discover endpoints without a side channel. **There is no hosted public registry yet** — the service is real but unpublished, so today you run your own; see the state note below. It indexes servers; it does not vouch for them. A listing means \"this endpoint claims to exist\", not \"this endpoint is safe\" — conformance claims go through the [suite](/conformance), not the registry.",
     },
 
     { kind: "h2", text: "Listing your server" },
@@ -178,7 +178,7 @@ export const registryPage: PageDef = {
     { kind: "h2", text: "Scope" },
     {
       kind: "p",
-      text: "The registry is for PMCP servers — endpoints speaking the protocol. It is not a general robot marketplace, and it deliberately carries no trust semantics: no conformance verdicts, no ratings, no reputation. The [conformance suite](/conformance) is the trust mechanism; the registry is the phone book.",
+      text: "The registry is for PCP servers — endpoints speaking the protocol. It is not a general robot marketplace, and it deliberately carries no trust semantics: no conformance verdicts, no ratings, no reputation. The [conformance suite](/conformance) is the trust mechanism; the registry is the phone book.",
     },
   ],
 };
@@ -209,8 +209,8 @@ export const verificationPage: PageDef = {
       codeFirstCol: true,
       headers: ["spec", "what it models", "what checking proves"],
       rows: [
-        ["PMCPCore.tla", "the gate ordering: E-Stop → Lease → Constitution → Shadow, and the invariant that no command reaches actuation while any gate is unsatisfied or the latch is set", "no reachable state in which an ungated command executes — the ordering constraint is a theorem, not a hope"],
-        ["PMCPRecovery.tla", "the recovery handshake after E-Stop disengage and lease re-acquisition", "recovery cannot resurrect a stale lease's authority — fencing token monotonicity holds through recovery"],
+        ["PCPCore.tla", "the gate ordering: E-Stop → Lease → Constitution → Shadow, and the invariant that no command reaches actuation while any gate is unsatisfied or the latch is set", "no reachable state in which an ungated command executes — the ordering constraint is a theorem, not a hope"],
+        ["PCPRecovery.tla", "the recovery handshake after E-Stop disengage and lease re-acquisition", "recovery cannot resurrect a stale lease's authority — fencing token monotonicity holds through recovery"],
       ],
     },
     {
@@ -260,10 +260,10 @@ export const verificationPage: PageDef = {
       rows: [
         ["python-tests", "pytest across Python 3.9–3.12 with coverage, uploaded to Codecov", "blocking"],
         ["conformance-tests", "the 42-test suite against the mock server", "blocking"],
-        ["type-check", "mypy over the v05/ and pmcp/ trees", "non-blocking during the duplicate-clients cleanup — failures surface on the PR, they do not gate it"],
+        ["type-check", "mypy over the v05/ and pcp/ trees", "non-blocking during the duplicate-clients cleanup — failures surface on the PR, they do not gate it"],
         ["lint", "ruff + black over shipping code", "non-blocking during the same cleanup"],
         ["security", "bandit (SAST) + pip-audit, report uploaded as artifact", "non-blocking, informational"],
-        ["rust-build", "cargo build + cargo test for pmcp-core, build for ledger", "runs on every change"],
+        ["rust-build", "cargo build + cargo test for pcp-core, build for ledger", "runs on every change"],
         ["typescript-sdk", "npm install + build", "runs on every change"],
         ["release", "PyPI publish via OIDC trusted publishing on v*.*.* tags, after python-tests and conformance-tests", "tag-gated"],
       ],
@@ -283,7 +283,7 @@ export const limitationsPage: PageDef = {
     { kind: "h1", text: "Limitations" },
     {
       kind: "p",
-      text: "PMCP's control logic — gate ordering, lease fencing, E-Stop latching, recovery — is model-checked and suite-verified. That is the verified state, and it is stated precisely: the protocol does what the TLA+ specs prove it does, and the SDKs speak the wire the conformance suite checks. Below that verified layer sit three problems that are **open research**, not unfinished engineering. They are listed with the same prominence as the rest of the documentation because an adoption decision made without reading them is a decision made on incomplete information.",
+      text: "PCP's control logic — gate ordering, lease fencing, E-Stop latching, recovery — is model-checked and suite-verified. That is the verified state, and it is stated precisely: the protocol does what the TLA+ specs prove it does, and the SDKs speak the wire the conformance suite checks. Below that verified layer sit three problems that are **open research**, not unfinished engineering. They are listed with the same prominence as the rest of the documentation because an adoption decision made without reading them is a decision made on incomplete information.",
     },
 
     { kind: "h2", text: "1 — Cross-hardware HNN determinism" },
@@ -293,7 +293,7 @@ export const limitationsPage: PageDef = {
     },
     {
       kind: "p",
-      text: "Where this stands: the current mitigation is operational, not solved — shadow evaluation is pinned to a declared runtime (fixed device class, fixed kernels), and a deployment's verification is only claimed for the hardware it was validated on. What is missing is a cross-hardware determinism guarantee with bounded disagreement, which is an open problem in learned-model inference, not a bug PMCP can fix in its own code.",
+      text: "Where this stands: the current mitigation is operational, not solved — shadow evaluation is pinned to a declared runtime (fixed device class, fixed kernels), and a deployment's verification is only claimed for the hardware it was validated on. What is missing is a cross-hardware determinism guarantee with bounded disagreement, which is an open problem in learned-model inference, not a bug PCP can fix in its own code.",
     },
 
     { kind: "h2", text: "2 — Conformal prediction under adversarial input" },
@@ -313,13 +313,13 @@ export const limitationsPage: PageDef = {
     },
     {
       kind: "p",
-      text: "The current mitigation is conservative: zone volumes are dilated by a geometry-aware error bound, so uncertain positions make zones larger and conflicts more likely to be detected — safe at the cost of availability. What is missing is real-time geometry quality estimation tight enough to shrink the dilation when the constellation is good, without growing it too late when the robot moves into a degenerate patch. That estimator is an open problem, and it bounds how tightly PMCP can pack concurrent agents into a cell.",
+      text: "The current mitigation is conservative: zone volumes are dilated by a geometry-aware error bound, so uncertain positions make zones larger and conflicts more likely to be detected — safe at the cost of availability. What is missing is real-time geometry quality estimation tight enough to shrink the dilation when the constellation is good, without growing it too late when the robot moves into a degenerate patch. That estimator is an open problem, and it bounds how tightly PCP can pack concurrent agents into a cell.",
     },
 
     { kind: "h2", text: "What this page is for" },
     {
       kind: "p",
-      text: "These three problems bound the protocol's claims, and they are the reason the word \"verified\" is used narrowly on [Verification](/verification): model-checked control logic, suite-verified wire behavior — with the physics-side guarantees stated as assumptions with known limits. If you are evaluating PMCP for adoption, treat this page as input to your risk analysis, not as a footnote to it.",
+      text: "These three problems bound the protocol's claims, and they are the reason the word \"verified\" is used narrowly on [Verification](/verification): model-checked control logic, suite-verified wire behavior — with the physics-side guarantees stated as assumptions with known limits. If you are evaluating PCP for adoption, treat this page as input to your risk analysis, not as a footnote to it.",
     },
   ],
 };

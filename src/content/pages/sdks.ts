@@ -19,9 +19,9 @@ const py: Block[] = [
     kind: "code",
     lang: "python",
     title: "client.py",
-    content: `from pmcp import PMCPClient
+    content: `from pcp import PCPClient
 
-client = PMCPClient()                 # name/version only — no URL
+client = PCPClient()                 # name/version only — no URL
 await client.connect_http("http://arm-01.local:8080")
 await client.connect_http("http://127.0.0.1:7000/mcp")  # runs the handshake`,
   },
@@ -54,22 +54,25 @@ if lease["state"] == "ACTIVE":
     kind: "code",
     lang: "python",
     title: "server.py",
-    content: `from v05.pmcp_v5_server import PMCPServer
-
-server = PMCPServer(robot_id="arm-01", endpoint="/mcp")
+    content: `from v05.pcp_v5_server import PCPServer
+from v05.pcp_safety_v5 import SafetyConstitution, SafetyMiddleware, SpeedLimitRule
 
 # constitution: rule semantics normative, thresholds are yours
-server.add_constitution_rules([
-    {"id": "CONST-01", "semantics": "velocity_cap",
-     "threshold": 1.0},                 # m/s, non-normative default
-    {"id": "CONST-03", "semantics": "energy_budget",
-     "threshold": 50_000},              # J
-])
+constitution = SafetyConstitution(
+    robot_id="arm-01",
+    rules=[
+        # m/s, non-normative default
+        SpeedLimitRule(max_speed_m_s=1.0),
+    ],
+)
 
-# shadow preview: validate the plan immediately before execution
-server.set_shadow_preview(shadow.predict_and_approve)
-
-server.serve(port=7000)`,
+# every actuation runs constitution -> shadow -> execute
+server = PCPServer(
+    "arm-01",
+    robot_class="arm",
+    model="UR5e",
+    safety=SafetyMiddleware(constitution),
+)`,
   },
 
   { kind: "h3", text: "Triggering E-Stop" },
@@ -85,23 +88,29 @@ await client.estop(source="operator_console")`,
 
   { kind: "h3", text: "Error handling" },
   {
+    kind: "p",
+    text: "Two exception classes carry the whole error surface: `PCPError` is the base, and `PCPClientError` is what the client raises. Both carry a `PCPErrorCode`, and the code — not the class — is what tells you what happened. Catch `PCPError` and branch on `.code`.",
+  },
+  {
     kind: "table",
     codeFirstCol: true,
-    headers: ["exception", "raised when"],
+    headers: ["code", "raised when"],
     rows: [
-      ["PMCPError", "base class for every protocol-defined failure"],
-      ["PMCPConnectionError", "transport failure or handshake rejection"],
-      ["LeaseDeniedError", "zone conflict — carries holder and expires_ms"],
-      ["ConstitutionViolationError", "a rule rejected the command — carries the rule id (e.g. CONST-01)"],
-      ["ShadowRejectedError", "the shadow monitor predicted an unsafe outcome"],
-      ["EStopLatchedError", "actuation attempted while the latch is engaged"],
+      ["`SHADOW_BLOCKED` (-33001)", "the shadow monitor predicted an unsafe trajectory — `data` carries the violations"],
+      ["`CONSTITUTION_BLOCKED` (-33002)", "a constitution rule rejected the command"],
+      ["`LEASE_REQUIRED` (-33003)", "zone lease denied or not held — `data` carries `deny_reason`"],
+      ["`LEASE_EXPIRED` (-33004)", "the held lease expired before actuation"],
+      ["`ESTOP_ACTIVE` (-33005)", "actuation attempted while the E-Stop latch is engaged"],
+      ["`SPEED_LIMIT` (-33007)", "command exceeded the declared speed limit"],
+      ["`ENERGY_BUDGET` (-33008)", "command exceeded the declared energy budget"],
+      ["`PARSE_ERROR` … `INTERNAL_ERROR` (-32700…-32603)", "standard JSON-RPC transport and framing failures"],
     ],
   },
 
   { kind: "h3", text: "Language notes" },
   {
     kind: "p",
-    text: "The package currently ships parallel implementations under `pmcp/`, `sdk/`, and `v05/` — an inheritance of the pre-split monorepo, [flagged in the org's migration map](https://github.com/physicalcontextprotocol/pmcp-spec/blob/main/MIGRATION_MAP.md) with consolidation as the top-priority cleanup. Until the canonical implementation is chosen, target the `v05` namespaces in new code: they speak the current wire version, and they are what CI's smoke-import step pins.",
+    text: "The package currently ships parallel implementations under `pcp/`, `sdk/`, and `v05/` — an inheritance of the pre-split monorepo, [flagged in the org's migration map](https://github.com/physicalcontextprotocol/pmcp-spec/blob/main/MIGRATION_MAP.md) with consolidation as the top-priority cleanup. Until the canonical implementation is chosen, target the `v05` namespaces in new code: they speak the current wire version, and they are what CI's smoke-import step pins.",
   },
 
   { kind: "h3", text: "Tests and conformance" },
@@ -143,9 +152,9 @@ const ts: Block[] = [
     kind: "code",
     lang: "typescript",
     title: "client.ts",
-    content: `import { PMCPServerClient } from "physicalcontextprotocol";
+    content: `import { PCPServerClient } from "physicalcontextprotocol";
 
-const client = new PMCPServerClient({
+const client = new PCPServerClient({
   transport: "http",
   serverUrl: "http://127.0.0.1:7000/mcp",
 });
@@ -180,20 +189,34 @@ const wasHeld = await client.releaseLease(lease.lease_id);`,
     kind: "code",
     lang: "typescript",
     title: "server.ts",
-    content: `import { PMCPServer } from "physicalcontextprotocol";
+    content: `import { PCPServer, RateLimitMiddleware } from "physicalcontextprotocol";
 
-const server = new PMCPServer({ robotId: "arm-01", endpoint: "/mcp" });
+const server = new PCPServer({
+  name: "arm-01",
+  robotClass: "arm",
+  model: "UR5e",
+  host: "0.0.0.0",
+  port: 7000,
+});
 
-// constitution: rule semantics normative, thresholds are yours
-server.addConstitutionRules([
-  { id: "CONST-01", semantics: "velocity_cap", threshold: 1.0 },
-  { id: "CONST-03", semantics: "energy_budget", threshold: 50_000 },
-]);
+// middleware wraps every actuation: constitution -> shadow -> execute
+server
+  .use(new RateLimitMiddleware(10, 20))
+  .actuation(
+    {
+      name: "move",
+      description: "Joint-space move",
+      maxSpeedMs: 1.0,        // m/s, non-normative default
+    },
+    async (params) => ({
+      success: true,
+      robot_id: "arm-01",
+      actuation_name: "move",
+      output: params,
+    }),
+  );
 
-// shadow preview: validate the plan immediately before execution
-server.setShadowPreview(shadow.predictAndApprove);
-
-await server.serve(7000);`,
+await server.listen();`,
   },
 
   { kind: "h3", text: "E-Stop handler registration" },
@@ -208,16 +231,24 @@ await client.setEstop(false);`,
 
   { kind: "h3", text: "Error handling" },
   {
+    kind: "p",
+    text: "The TypeScript SDK raises a single error class, `PCPClientError`, carrying a numeric `code`. Branch on the code rather than the class. Two getters do the range checks for you: `.isPcpError` is true for any protocol-defined code (-33999…-33000), and `.isSafetyError` is true for the codes that mean a gate stopped the motion.",
+  },
+  {
     kind: "table",
     codeFirstCol: true,
-    headers: ["error", "thrown when"],
+    headers: ["code", "thrown when"],
     rows: [
-      ["PMCPError", "base class for every protocol-defined failure"],
-      ["PMCPConnectionError", "transport failure or handshake rejection"],
-      ["LeaseDeniedError", "zone conflict — carries holder and expiresMs"],
-      ["ConstitutionViolationError", "a rule rejected the command — carries the rule id"],
-      ["ShadowRejectedError", "the shadow monitor predicted an unsafe outcome"],
-      ["EStopLatchedError", "actuation attempted while the latch is engaged"],
+      ["`ShadowBlocked` (-33001)", "the shadow monitor predicted an unsafe trajectory"],
+      ["`ConstitutionBlocked` (-33002)", "a constitution rule rejected the command"],
+      ["`LeaseRequired` (-33003)", "zone lease denied or not held"],
+      ["`LeaseExpired` (-33004)", "the held lease expired before actuation"],
+      ["`EstopActive` (-33005)", "actuation attempted while the E-Stop latch is engaged"],
+      ["`FloorGuard` (-33006)", "the commanded pose violated a floor-guard zone"],
+      ["`SpeedLimit` (-33007)", "command exceeded the declared speed limit"],
+      ["`EnergyBudget` (-33008)", "command exceeded the declared energy budget"],
+      ["`HumanProximity` (-33009)", "a person entered the guarded zone mid-motion"],
+      ["`ParseError` … `InternalError` (-32700…-32603)", "standard JSON-RPC transport and framing failures"],
     ],
   },
 
@@ -256,7 +287,7 @@ const rs: Block[] = [
   { kind: "h3", text: "Client construction" },
   {
     kind: "p",
-    text: "There is no high-level client type. The crate ships transports, and you drive JSON-RPC over the channels `Transport::connect` returns. A runnable two-process example is in [`pmcp-core/examples/server_and_client.rs`](https://github.com/physicalcontextprotocol/pmcp-rust/blob/main/pmcp-core/examples/server_and_client.rs).",
+    text: "There is no high-level client type. The crate ships transports, and you drive JSON-RPC over the channels `Transport::connect` returns. A runnable two-process example is in [`pcp-core/examples/server_and_client.rs`](https://github.com/physicalcontextprotocol/pmcp-rust/blob/main/pcp-core/examples/server_and_client.rs).",
   },
   {
     kind: "code",
@@ -301,7 +332,7 @@ if grant["state"] == "GRANTED" {
     kind: "code",
     lang: "rust",
     title: "server.rs",
-    content: `let server = PMCPServerBuilder::new("arm-01")
+    content: `let server = PCPServerBuilder::new("arm-01")
     .constitution_rule(Rule::VelocityCap(1.0))        // CONST-01
     .constitution_rule(Rule::EnergyBudget(50_000))    // CONST-03
     .shadow_preview(shadow::predict_and_approve)
@@ -319,8 +350,8 @@ server.run().await?;`,
     content: `// Estop is a request, not a subscription - there is no
 // handler to register and no notification to await.
 while let Some(message) = rx.recv().await {
-    // \`pmcp/estop\` arrives as a JSON-RPC notification (no "id").
-    if message["method"] == "pmcp/estop" {
+    // \`pcp/estop\` arrives as a JSON-RPC notification (no "id").
+    if message["method"] == "pcp/estop" {
         let active = message["params"]["active"].as_bool().unwrap_or(true);
         LATCHED.store(active, Ordering::SeqCst);
     }
@@ -330,25 +361,25 @@ while let Some(message) = rx.recv().await {
   { kind: "h3", text: "Error handling" },
   {
     kind: "p",
-    text: "Failures arrive two ways. A transport or protocol problem is a `PmcpError`; a policy refusal — lease denied, constitution rule violated, shadow rejected, E-Stop latched — is a **successful JSON-RPC response** whose payload says so. Both are matched on the same error enum:",
+    text: "Failures arrive two ways. A transport or protocol problem is a `PcpError`; a policy refusal — lease denied, constitution rule violated, shadow rejected, E-Stop latched — is a **successful JSON-RPC response** whose payload says so. Both are matched on the same error enum:",
   },
   {
     kind: "code",
     lang: "rust",
     title: "error",
-    content: `use physicalcontextprotocol::{PmcpError, PmcpErrorCode};
+    content: `use physicalcontextprotocol::{PcpError, PcpErrorCode};
 
 // Transport / protocol failures
 match transport.connect().await {
     Ok(channels) => {}
-    Err(PmcpError::Transport(e)) => { /* connection */ }
-    Err(PmcpError::MethodNotFound { .. }) => { /* server is older */ }
+    Err(PcpError::Transport(e)) => { /* connection */ }
+    Err(PcpError::MethodNotFound { .. }) => { /* server is older */ }
     Err(other) => return Err(other.into()),
 }
 
 // Policy refusals are NOT errors — inspect the payload
 let reply = send(tools_call).await?;
-if reply["error"]["code"] == PmcpErrorCode::ConstitutionViolation as i64 {
+if reply["error"]["code"] == PcpErrorCode::ConstitutionViolation as i64 {
     // e.g. CONST-01
 }`,
   },
@@ -371,7 +402,7 @@ tokio::spawn(async move {
         "jsonrpc": "2.0", "id": 2, "method": "lease/request",
         "params": { "zone_id": "cell-north", "duration_ms": 30_000 }
     })).await?;
-    Ok::<_, PmcpError>(())
+    Ok::<_, PcpError>(())
 });
 
 // one reader owns rx and routes replies to whichever task is waiting
@@ -379,7 +410,7 @@ while let Some(message) = rx.recv().await {
     match message["id"].as_u64() {
         Some(1) => { /* handshake reply */ }
         Some(2) => { /* lease grant */ }
-        _ => { /* notification, e.g. pmcp/estop — no "id" */ }
+        _ => { /* notification, e.g. pcp/estop — no "id" */ }
     }
 }`,
   },
@@ -397,7 +428,7 @@ while let Some(message) = rx.recv().await {
     kind: "code",
     lang: "bash",
     title: "run the suite",
-    content: `cd pmcp-rust/pmcp-core
+    content: `cd pmcp-rust/pcp-core
 cargo test`,
   },
   {

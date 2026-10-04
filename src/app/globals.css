@@ -1,7 +1,7 @@
 @import "tailwindcss";
 
 /* ────────────────────────────────────────────────────────────────────────────
-   PMCP docs — pure black / white / one gray. No other colors. No gradients,
+   PCP docs — pure black / white / one gray. No other colors. No gradients,
    no shadows, no rounded corners. Typography and whitespace only.
    ──────────────────────────────────────────────────────────────────────────── */
 
@@ -22,7 +22,7 @@ html {
   color-scheme: dark;
 }
 
-.pmcp-body {
+.pcp-body {
   background: var(--bg);
   color: var(--fg);
   font-family: var(--font-mono-stack);
@@ -66,7 +66,7 @@ a:hover {
 }
 
 /* ── Inline code ─────────────────────────────────────────────────────────── */
-.pmcp-body code.ic {
+.pcp-body code.ic {
   background: rgba(255, 255, 255, 0.08);
   color: var(--fg);
   padding: 0.1em 0.35em;
@@ -130,14 +130,14 @@ a:hover {
   overflow-x: auto;
   margin: 24px 0;
 }
-table.pmcp {
+table.pcp {
   border-collapse: collapse;
   width: 100%;
   font-size: 12.5px;
   line-height: 1.7;
   min-width: 480px;
 }
-table.pmcp thead th {
+table.pcp thead th {
   text-align: left;
   color: var(--dim);
   font-weight: 500;
@@ -149,17 +149,17 @@ table.pmcp thead th {
   padding: 8px 14px 8px 0;
   vertical-align: bottom;
 }
-table.pmcp tbody td {
+table.pcp tbody td {
   border-bottom: 1px solid var(--line);
   padding: 8px 14px 8px 0;
   vertical-align: top;
   color: #e6e6e6;
 }
-table.pmcp tbody td:first-child code.ic {
+table.pcp tbody td:first-child code.ic {
   background: transparent;
   padding: 0;
 }
-table.pmcp tbody tr:last-child td {
+table.pcp tbody tr:last-child td {
   border-bottom: 1px solid var(--line-strong);
 }
 

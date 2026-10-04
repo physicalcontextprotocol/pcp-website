@@ -2,7 +2,7 @@
 
 import { Logo } from "./Logo";
 
-export const PMCP_VERSION = "v0.5";
+export const PCP_VERSION = "v0.5";
 export const GITHUB_ORG = "https://github.com/physicalcontextprotocol";
 
 export function TopBar({
@@ -86,7 +86,7 @@ export function TopBar({
                 letterSpacing: "0.12em",
               }}
             >
-              PMCP
+              PCP
             </span>
           </a>
         </div>
@@ -147,7 +147,7 @@ export function TopBar({
               whiteSpace: "nowrap",
             }}
           >
-            {PMCP_VERSION}
+            {PCP_VERSION}
           </span>
         </div>
       </div>

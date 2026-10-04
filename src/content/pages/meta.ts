@@ -7,14 +7,14 @@ export const governancePage: PageDef = {
     { kind: "h1", text: "Governance" },
     {
       kind: "p",
-      text: "How decisions get made in the PMCP organization — who decides, by what process, and what changes that. An engineering lead evaluating PMCP for internal adoption will read this page before the protocol pages; it is given first-class navigation weight on purpose.",
+      text: "How decisions get made in the PCP organization — who decides, by what process, and what changes that. An engineering lead evaluating PCP for internal adoption will read this page before the protocol pages; it is given first-class navigation weight on purpose.",
     },
     {
       kind: "placeholder",
       title: "Governance model — content not yet drafted",
       body: "The governance document has not been written yet, and this page will not paper over that with vague reassurance. What is drafted is the structure below; the full text is the next content pass.",
       willCover: [
-        "the current decision-making model, stated plainly — today PMCP is maintainer-led: one maintainer decides, with the spec and conformance suite as the constraint on what can be decided unilaterally",
+        "the current decision-making model, stated plainly — today PCP is maintainer-led: one maintainer decides, with the spec and conformance suite as the constraint on what can be decided unilaterally",
         "the stated plan for transitioning to a broader governance model, and the trigger condition for that transition — for example, N active contributors from M distinct organizations, or the first third-party conformance claim, whichever comes first",
         "what is reserved to governance vs. what any contributor can do without asking: wire-format changes and gate semantics are reserved; SDK fixes, docs, and server adapters are not",
         "the RFC process for protocol changes, cross-referenced from [Contributing](/contributing)",
@@ -34,7 +34,7 @@ export const versioningPage: PageDef = {
     { kind: "h1", text: "Versioning" },
     {
       kind: "p",
-      text: "PMCP versions three different things, and conflating them is how protocols rot: the **wire format** (what goes over the network), the **SDK APIs** (what you call in each language), and the **specification** (what behavior is required). Each has its own version, its own compatibility rules, and its own communication channel.",
+      text: "PCP versions three different things, and conflating them is how protocols rot: the **wire format** (what goes over the network), the **SDK APIs** (what you call in each language), and the **specification** (what behavior is required). Each has its own version, its own compatibility rules, and its own communication channel.",
     },
 
     { kind: "h2", text: "What is pinned today" },
@@ -42,14 +42,14 @@ export const versioningPage: PageDef = {
       kind: "table",
       headers: ["artifact", "current", "where it lives"],
       rows: [
-        ["Wire protocol version", "`0.5` — negotiated in the `initialize` handshake, echoed in the `X-PMCP-Version` response header", "[Wire Format](/protocol/wire-format)"],
+        ["Wire protocol version", "`0.5` — negotiated in the `initialize` handshake, echoed in the `X-PCP-Version` response header", "[Wire Format](/protocol/wire-format)"],
         ["SDK versions", "per-repo SemVer — each of the nine repositories versions independently", "each repository's releases"],
         ["Spec version", "tracked with the wire version; conformance is claimed per wire version", "[pmcp-spec](https://github.com/physicalcontextprotocol/pmcp-spec)"],
       ],
     },
     {
       kind: "p",
-      text: "The org-level rule already in force: semantic versioning applies **per sub-project, not to the org as a whole** — there is no version of \"PMCP the organization\", there are versions of `pmcp-python`, `pmcp-typescript`, `pmcp-core`, and the shared wire format they conform to. This is the same pattern the MCP organization uses, deliberately.",
+      text: "The org-level rule already in force: semantic versioning applies **per sub-project, not to the org as a whole** — there is no version of \"PCP the organization\", there are versions of `pmcp-python`, `pmcp-typescript`, `pcp-core`, and the shared wire format they conform to. This is the same pattern the MCP organization uses, deliberately.",
     },
 
     {
@@ -110,7 +110,7 @@ export const securityPage: PageDef = {
     },
     {
       kind: "p",
-      text: "Out of scope: deployments and configurations someone built on top of PMCP. A robot cell whose operator disabled the constitution gate is a deployment incident, not a protocol vulnerability — the protocol's position is that servers declare their enforcement posture honestly in the `initialize` handshake, and what an operator then runs is theirs. Also out of scope: the known, published limitations — the [registry](/registry)'s missing auth is documented there, and the three [research problems](/limitations) are stated openly; report new findings, not the ones already on the ledger.",
+      text: "Out of scope: deployments and configurations someone built on top of PCP. A robot cell whose operator disabled the constitution gate is a deployment incident, not a protocol vulnerability — the protocol's position is that servers declare their enforcement posture honestly in the `initialize` handshake, and what an operator then runs is theirs. Also out of scope: the known, published limitations — the [registry](/registry)'s missing auth is documented there, and the three [research problems](/limitations) are stated openly; report new findings, not the ones already on the ledger.",
     },
 
     { kind: "h2", text: "Security posture of the pipeline itself" },
@@ -128,7 +128,7 @@ export const contributingPage: PageDef = {
     { kind: "h1", text: "Contributing" },
     {
       kind: "p",
-      text: "PMCP is an early-stage organization of nine repositories, and a lot of what \"contributing\" means is still shifting. What follows is the current guidance — the operative word being current. The full text lives in [`CONTRIBUTING.md`](https://github.com/physicalcontextprotocol/.github/blob/main/CONTRIBUTING.md) in the organization's community-health repository; this page summarizes it and links the parts that live elsewhere. Each repository also carries its own `CONTRIBUTING.md` with the local constraints.",
+      text: "PCP is an early-stage organization of nine repositories, and a lot of what \"contributing\" means is still shifting. What follows is the current guidance — the operative word being current. The full text lives in [`CONTRIBUTING.md`](https://github.com/physicalcontextprotocol/.github/blob/main/CONTRIBUTING.md) in the organization's community-health repository; this page summarizes it and links the parts that live elsewhere. Each repository also carries its own `CONTRIBUTING.md` with the local constraints.",
     },
 
     { kind: "h2", text: "Where the work lives" },
@@ -145,7 +145,7 @@ export const contributingPage: PageDef = {
     {
       kind: "list",
       items: [
-        "consolidation of the duplicate `PMCPServer` / `PMCPClient` / `ShadowPreview` implementations across `pmcp-python`'s internal trees — the org's declared top cleanup priority",
+        "consolidation of the duplicate `PCPServer` / `PCPClient` / `ShadowPreview` implementations across `pmcp-python`'s internal trees — the org's declared top cleanup priority",
         "populating the per-method JSON Schemas under `pmcp-spec/schema/` (the shared `$defs` exist; the method-level files are the gap)",
         "a real driver for `pmcp-conformance` so it can validate external implementations, not just the in-process mock",
         "authentication and input validation on `pmcp-registry` (see the warning on [Registry](/registry))",

@@ -3,14 +3,14 @@ import "./globals.css";
 
 export const metadata: Metadata = {
   title: {
-    default: "PMCP — Physical Model Context Protocol",
-    template: "%s — PMCP",
+    default: "PCP — Physical Context Protocol",
+    template: "%s — PCP",
   },
   description:
-    "PMCP coordinates access to shared physical resources — space, tools, actuation — across multiple robots or actuated agents, through formally verified safety gates.",
-  icons: { icon: "/pmcp-mark.svg" },
+    "PCP coordinates access to shared physical resources — space, tools, actuation — across multiple robots or actuated agents, through formally verified safety gates.",
+  icons: { icon: "/pcp-mark.svg" },
   openGraph: {
-    title: "PMCP — Physical Model Context Protocol",
+    title: "PCP — Physical Context Protocol",
     description:
       "Safety coordination protocol for multi-robot systems. Lease, Constitution, Shadow, E-Stop.",
     type: "website",
@@ -41,7 +41,7 @@ export default function RootLayout({
           rel="stylesheet"
         />
       </head>
-      <body className="pmcp-body antialiased">
+      <body className="pcp-body antialiased">
         {children}
       </body>
     </html>

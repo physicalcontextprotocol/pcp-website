@@ -1,5 +1,5 @@
 /* ────────────────────────────────────────────────────────────────────────────
-   PMCP docs content model — pages are data, rendered by BlockRenderer.
+   PCP docs content model — pages are data, rendered by BlockRenderer.
    Keeping content as data makes the search index and the page tree come
    from a single source.
    ──────────────────────────────────────────────────────────────────────────── */

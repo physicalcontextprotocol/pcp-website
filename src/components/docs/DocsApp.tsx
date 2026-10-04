@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState, useCallback, useRef } from "react";
-import { TopBar, GITHUB_ORG, PMCP_VERSION } from "./TopBar";
+import { TopBar, GITHUB_ORG, PCP_VERSION } from "./TopBar";
 import { Sidebar } from "./Sidebar";
 import { SearchOverlay } from "./Search";
 import { BlockRenderer } from "./BlockRenderer";
@@ -288,7 +288,7 @@ export function DocsApp() {
           >
             <nav aria-label="Breadcrumb" style={{ fontSize: 11.5, color: "var(--dimmer)", marginBottom: 18, letterSpacing: "0.02em" }}>
               <a href="#/" style={{ color: "var(--dim)", textDecoration: "none" }}>
-                PMCP
+                PCP
               </a>
               {route !== "/" && (
                 <>
@@ -333,7 +333,7 @@ export function DocsApp() {
               >
                 GitHub
               </a>
-              <span>{PMCP_VERSION}</span>
+              <span>{PCP_VERSION}</span>
             </footer>
           </article>
         </main>

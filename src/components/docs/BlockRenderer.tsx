@@ -128,7 +128,7 @@ function BlockView({ b }: { b: Block }) {
     case "table":
       return (
         <div className="tblwrap">
-          <table className="pmcp">
+          <table className="pcp">
             <thead>
               <tr>
                 {b.headers.map((h, i) => (

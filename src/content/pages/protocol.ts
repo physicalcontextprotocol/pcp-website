@@ -8,7 +8,7 @@ export const protocolOverviewPage: PageDef = {
 
     {
       kind: "p",
-      text: 'A "protocol" here means two things together: a **wire format** — exact JSON-RPC 2.0 messages with a JSON Schema 2020-12 definition — and a set of **required behaviors** — what a conforming implementation must do when those messages arrive. It is not a specific implementation, not a library, and not a framework. Anything that speaks the wire format and honors the required behaviors is a PMCP implementation, whether it is written in Python, Rust, or something that does not exist yet.',
+      text: 'A "protocol" here means two things together: a **wire format** — exact JSON-RPC 2.0 messages with a JSON Schema 2020-12 definition — and a set of **required behaviors** — what a conforming implementation must do when those messages arrive. It is not a specific implementation, not a library, and not a framework. Anything that speaks the wire format and honors the required behaviors is a PCP implementation, whether it is written in Python, Rust, or something that does not exist yet.',
     },
     {
       kind: "p",
@@ -110,17 +110,17 @@ export const protocolEstopPage: PageDef = {
     { kind: "h2", text: "Wire form" },
     {
       kind: "p",
-      text: "The RPC pair is `safety/estop/engage` and `safety/estop/disengage` over the same JSON-RPC 2.0 channel as everything else, plus a broadcast notification `pmcp/estop` that fans out to all connected clients the moment the latch engages:",
+      text: "The RPC pair is `safety/estop/engage` and `safety/estop/disengage` over the same JSON-RPC 2.0 channel as everything else, plus a broadcast notification `pcp/estop` that fans out to all connected clients the moment the latch engages:",
     },
     {
       kind: "code",
       lang: "json",
-      title: "pmcp/estop — notification",
+      title: "pcp/estop — notification",
       content: `{
   "jsonrpc": "2.0",
-  "method": "pmcp/estop",
+  "method": "pcp/estop",
   "params": {
-    "type": "pmcp/estop",
+    "type": "pcp/estop",
     "engaged": true,
     "reason": "operator-panic",
     "source": "operator-console-2",
@@ -230,7 +230,7 @@ export const protocolLeasesPage: PageDef = {
     { kind: "h2", text: "Spatial conflict detection" },
     {
       kind: "p",
-      text: "Every lease covers a volume, and two leases conflict when their volumes intersect during overlapping time windows. Checking that naively — comparing every new request against every held lease — is quadratic in the number of agents, which is exactly the wrong shape for a safety-critical path that has to stay fast under load. PMCP servers index active leases in an **R\\*-tree**, a spatial index structure that organizes volumes into nested bounding rectangles and prunes whole subtrees that cannot possibly intersect a query volume.",
+      text: "Every lease covers a volume, and two leases conflict when their volumes intersect during overlapping time windows. Checking that naively — comparing every new request against every held lease — is quadratic in the number of agents, which is exactly the wrong shape for a safety-critical path that has to stay fast under load. PCP servers index active leases in an **R\\*-tree**, a spatial index structure that organizes volumes into nested bounding rectangles and prunes whole subtrees that cannot possibly intersect a query volume.",
     },
     {
       kind: "p",
@@ -270,7 +270,7 @@ export const protocolWireFormatPage: PageDef = {
     { kind: "h1", text: "Wire Format" },
     {
       kind: "p",
-      text: "PMCP is JSON-RPC 2.0 over HTTP. A server exposes a single POST endpoint (conventionally `/mcp`); every method — from `initialize` to `safety/estop/engage` — is a JSON-RPC request/response pair on that endpoint. Responses set an `X-PMCP-Version` header carrying the negotiated protocol version. There is no second serialization, no binary mode, and no method outside this table.",
+      text: "PCP is JSON-RPC 2.0 over HTTP. A server exposes a single POST endpoint (conventionally `/mcp`); every method — from `initialize` to `safety/estop/engage` — is a JSON-RPC request/response pair on that endpoint. Responses set an `X-PCP-Version` header carrying the negotiated protocol version. There is no second serialization, no binary mode, and no method outside this table.",
     },
 
     { kind: "h2", text: "Message types" },
@@ -287,8 +287,8 @@ export const protocolWireFormatPage: PageDef = {
         ["sensors/read", "Read one sensor: value, unit, timestamp_ms, quality"],
         ["leases/acquire", "Request a lease on a zone: zone_id, duration_ms → lease_id, expires_ms, granted"],
         ["leases/release", "Release a held lease by lease_id"],
-        ["pmcp/metrics", "Server counters: actuationCount, sensorReadCount, safetyViolations, uptimeSeconds, energyUsedJ, connectedClients, lastHeartbeatMs"],
-        ["pmcp/ping", "Liveness probe → pong + timestamp"],
+        ["pcp/metrics", "Server counters: actuationCount, sensorReadCount, safetyViolations, uptimeSeconds, energyUsedJ, connectedClients, lastHeartbeatMs"],
+        ["pcp/ping", "Liveness probe → pong + timestamp"],
         ["safety/estop/engage", "Engage the E-Stop latch; gated actuation is refused while latched"],
         ["safety/estop/disengage", "Explicitly reset the latch — the only path that clears it"],
       ],
@@ -373,7 +373,7 @@ export const protocolWireFormatPage: PageDef = {
         ["-32601", "Method not found — also used for unknown actuation or sensor names"],
         ["-32602", "Invalid params"],
         ["-32603", "Internal error"],
-        ["-33000 … -33999", "The P-MCP application error range — lease denials, gate rejections, latch refusals, and every protocol-defined failure. Reserved for PMCP; implementations must not use this range for their own non-protocol errors"],
+        ["-33000 … -33999", "The P-MCP application error range — lease denials, gate rejections, latch refusals, and every protocol-defined failure. Reserved for PCP; implementations must not use this range for their own non-protocol errors"],
       ],
     },
 
