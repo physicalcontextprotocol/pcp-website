@@ -1,0 +1,427 @@
+@import "tailwindcss";
+
+/* ────────────────────────────────────────────────────────────────────────────
+   PMCP docs — pure black / white / one gray. No other colors. No gradients,
+   no shadows, no rounded corners. Typography and whitespace only.
+   ──────────────────────────────────────────────────────────────────────────── */
+
+:root {
+  --bg: #000000;
+  --fg: #ffffff;
+  --dim: #888888;
+  --dimmer: #555555;
+  /* white at reduced opacity — still "white lines", used for hairlines */
+  --line: rgba(255, 255, 255, 0.16);
+  --line-strong: rgba(255, 255, 255, 0.34);
+  --font-mono-stack: "JetBrains Mono", ui-monospace, "SF Mono", "Menlo",
+    "Consolas", "Liberation Mono", monospace;
+}
+
+html {
+  background: var(--bg);
+  color-scheme: dark;
+}
+
+.pmcp-body {
+  background: var(--bg);
+  color: var(--fg);
+  font-family: var(--font-mono-stack);
+  font-size: 14px;
+  line-height: 1.8;
+  letter-spacing: -0.01em;
+  min-height: 100vh;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+::selection {
+  background: #ffffff;
+  color: #000000;
+}
+
+/* Scrollbars — thin, monochrome */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: #333 transparent;
+}
+*::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+*::-webkit-scrollbar-thumb {
+  background: #333;
+}
+*::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+a {
+  color: var(--fg);
+  text-decoration: underline;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 3px;
+}
+a:hover {
+  color: var(--dim);
+}
+
+/* ── Inline code ─────────────────────────────────────────────────────────── */
+.pmcp-body code.ic {
+  background: rgba(255, 255, 255, 0.08);
+  color: var(--fg);
+  padding: 0.1em 0.35em;
+  font-size: 0.92em;
+  border-radius: 0;
+}
+
+/* ── Code blocks ─────────────────────────────────────────────────────────── */
+.codewrap {
+  background: #0a0a0a;
+  border: 1px solid var(--line);
+  margin: 20px 0;
+  position: relative;
+}
+.codewrap .codetitle {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 6px 12px;
+  border-bottom: 1px solid var(--line);
+  color: var(--dim);
+  font-size: 11px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+.copybtn {
+  background: transparent;
+  border: 0;
+  color: var(--dim);
+  font-family: inherit;
+  font-size: 11px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  cursor: pointer;
+  padding: 2px 6px;
+}
+.copybtn:hover {
+  color: #fff;
+}
+.codewrap pre {
+  margin: 0;
+  padding: 18px 20px;
+  overflow-x: auto;
+  font-size: 12.5px;
+  line-height: 1.75;
+  letter-spacing: 0;
+  color: #e6e6e6;
+  tab-size: 4;
+}
+
+/* Grayscale syntax tokens — dim colors on black, nothing loud */
+.tok-kw { color: #ffffff; font-weight: 500; }
+.tok-str { color: #b5b5b5; }
+.tok-com { color: #4d4d4d; font-style: italic; }
+.tok-num { color: #9d9d9d; }
+.tok-fn { color: #f2f2f2; }
+.tok-attr { color: #c9c9c9; }
+
+/* ── Tables ──────────────────────────────────────────────────────────────── */
+.tblwrap {
+  overflow-x: auto;
+  margin: 24px 0;
+}
+table.pmcp {
+  border-collapse: collapse;
+  width: 100%;
+  font-size: 12.5px;
+  line-height: 1.7;
+  min-width: 480px;
+}
+table.pmcp thead th {
+  text-align: left;
+  color: var(--dim);
+  font-weight: 500;
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  border-top: 1px solid var(--line-strong);
+  border-bottom: 1px solid var(--line);
+  padding: 8px 14px 8px 0;
+  vertical-align: bottom;
+}
+table.pmcp tbody td {
+  border-bottom: 1px solid var(--line);
+  padding: 8px 14px 8px 0;
+  vertical-align: top;
+  color: #e6e6e6;
+}
+table.pmcp tbody td:first-child code.ic {
+  background: transparent;
+  padding: 0;
+}
+table.pmcp tbody tr:last-child td {
+  border-bottom: 1px solid var(--line-strong);
+}
+
+/* ── ASCII diagrams ──────────────────────────────────────────────────────── */
+.asciiwrap {
+  overflow-x: auto;
+  margin: 24px 0;
+  border: 1px solid var(--line);
+  background: #0a0a0a;
+}
+.asciiwrap pre {
+  margin: 0;
+  padding: 20px 24px;
+  font-size: 12px;
+  line-height: 1.65;
+  color: #e6e6e6;
+}
+
+/* ── Notes (bordered left rule, white) ───────────────────────────────────── */
+.note {
+  border-left: 1px solid #fff;
+  padding: 4px 0 4px 16px;
+  margin: 24px 0;
+  color: #e6e6e6;
+  font-size: 13px;
+}
+.note .notelabel {
+  color: var(--dim);
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  display: block;
+  margin-bottom: 2px;
+}
+
+/* ── Tabs ────────────────────────────────────────────────────────────────── */
+.tabrow {
+  display: flex;
+  gap: 2px;
+  border-bottom: 1px solid var(--line);
+  margin: 28px 0 0;
+  overflow-x: auto;
+}
+.tabbtn {
+  background: transparent;
+  border: 0;
+  border-bottom: 1px solid transparent;
+  margin-bottom: -1px;
+  color: var(--dim);
+  font-family: inherit;
+  font-size: 12.5px;
+  letter-spacing: 0.02em;
+  padding: 8px 14px;
+  cursor: pointer;
+  white-space: nowrap;
+}
+.tabbtn:hover {
+  color: #fff;
+}
+.tabbtn[aria-selected="true"] {
+  color: #fff;
+  border-bottom-color: #fff;
+}
+.tabpanel {
+  padding-top: 20px;
+}
+
+/* ── Plain link rows (overview "not as cards") ───────────────────────────── */
+.linkrows {
+  margin: 28px 0;
+}
+.linkrow {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 24px;
+  padding: 10px 0;
+  border-bottom: 1px solid var(--line);
+}
+.linkrow:first-child {
+  border-top: 1px solid var(--line);
+}
+.linkrow a {
+  text-decoration: none;
+  white-space: nowrap;
+}
+.linkrow a::before {
+  content: "→ ";
+  color: var(--dim);
+}
+.linkrow a:hover::before,
+.linkrow a:hover {
+  color: #fff;
+}
+.linkrow .linkdesc {
+  color: var(--dim);
+  font-size: 12px;
+  text-align: right;
+}
+
+/* ── Search ──────────────────────────────────────────────────────────────── */
+.searchinput {
+  background: transparent;
+  border: 1px solid var(--line);
+  color: #fff;
+  font-family: inherit;
+  font-size: 12.5px;
+  padding: 8px 10px 8px 28px;
+  width: 100%;
+  border-radius: 0;
+}
+.searchinput:focus {
+  outline: none;
+  border-color: #fff;
+}
+.searchinput::placeholder {
+  color: var(--dimmer);
+}
+.searchmodal {
+  position: fixed;
+  inset: 0;
+  z-index: 60;
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  padding: 10vh 16px 16px;
+  background: rgba(0, 0, 0, 0.85);
+  backdrop-filter: blur(2px);
+}
+.searchpanel {
+  width: 100%;
+  max-width: 560px;
+  background: #000;
+  border: 1px solid var(--line-strong);
+}
+.searchresult {
+  display: block;
+  width: 100%;
+  text-align: left;
+  background: transparent;
+  border: 0;
+  border-left: 1px solid transparent;
+  color: var(--dim);
+  font-family: inherit;
+  font-size: 12.5px;
+  padding: 10px 12px;
+  cursor: pointer;
+}
+.searchresult .sr-page {
+  color: var(--dim);
+  font-size: 10.5px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  display: block;
+}
+.searchresult .sr-title {
+  color: #fff;
+  display: block;
+  margin: 1px 0;
+}
+.searchresult .sr-snippet {
+  color: var(--dim);
+  display: block;
+  font-size: 11.5px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.searchresult[data-active="true"] {
+  border-left-color: #fff;
+  background: #0a0a0a;
+}
+.srchl {
+  color: #fff;
+  background: rgba(255, 255, 255, 0.14);
+}
+
+/* ── Sidebar nav ─────────────────────────────────────────────────────────── */
+.navitem {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  width: 100%;
+  text-align: left;
+  background: transparent;
+  border: 0;
+  color: var(--dim);
+  font-family: inherit;
+  font-size: 12.5px;
+  line-height: 1.6;
+  padding: 5px 10px;
+  cursor: pointer;
+  text-decoration: none;
+  white-space: nowrap;
+}
+.navitem:hover {
+  color: #fff;
+}
+.navitem[aria-current="page"] {
+  color: #fff;
+  font-weight: 500;
+}
+.navgroup-label {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  width: 100%;
+  background: transparent;
+  border: 0;
+  color: var(--dim);
+  font-family: inherit;
+  font-size: 11px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  padding: 5px 10px;
+  cursor: pointer;
+}
+.navgroup-label:hover {
+  color: #fff;
+}
+.navgroup-label .twist {
+  color: var(--dimmer);
+  width: 10px;
+  display: inline-block;
+  text-align: center;
+  font-size: 10px;
+}
+
+/* ── On-this-page rail ───────────────────────────────────────────────────── */
+.onpage a {
+  display: block;
+  color: var(--dim);
+  font-size: 11.5px;
+  line-height: 1.9;
+  text-decoration: none;
+  border-left: 1px solid transparent;
+  padding-left: 10px;
+  margin-left: -1px;
+}
+.onpage a:hover {
+  color: #fff;
+}
+.onpage a.active {
+  color: #fff;
+  border-left-color: #fff;
+}
+.onpage .oplabel {
+  color: var(--dimmer);
+  font-size: 10.5px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  margin-bottom: 6px;
+}
+
+/* ── Focus visibility (keyboard only) ────────────────────────────────────── */
+:focus-visible {
+  outline: 1px solid #fff;
+  outline-offset: 2px;
+}
+
+@media (max-width: 480px) {
+  .topsearch span {
+    display: none;
+  }
+}

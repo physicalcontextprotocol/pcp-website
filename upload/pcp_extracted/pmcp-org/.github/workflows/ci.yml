@@ -1,0 +1,331 @@
+name: pmcp-org CI
+
+on:
+  push:
+    branches: [main, develop]
+    tags:
+      - "v*.*.*"
+  pull_request:
+    branches: [main]
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+# All jobs operate on the monorepo layout (pmcp-python/, pmcp-conformance/,
+# pmcp-typescript/, pmcp-rust/*). Sub-projects that fail cleanly are
+# non-blocking during the migration; the ones we have already verified
+# (pmcp-python and pmcp-conformance) MUST pass.
+
+jobs:
+
+  # ==========================================================================
+  # Python SDK — pmcp-python — matrix across supported Pythons
+  # ==========================================================================
+  python-tests:
+    name: pmcp-python / Python ${{ matrix.python-version }}
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ["3.9", "3.10", "3.11", "3.12"]
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+          cache: pip
+
+      - name: Install SDK + dev extras
+        working-directory: pmcp-python
+        run: |
+          python -m pip install --upgrade pip
+          pip install -e ".[dev,numerics]"
+
+      - name: Smoke-import v05 SDK
+        working-directory: pmcp-python
+        run: |
+          python -c "
+          import v05.pmcp_v5_server as srv
+          import v05.pmcp_v5_types  as typ
+          import v05.pmcp_safety_v5 as saf
+          import v05.pmcp_registry   as reg
+          print('v05 imports OK')
+          "
+
+      - name: Run test suite with coverage
+        working-directory: pmcp-python
+        run: |
+          pytest tests/ \
+            --cov=v05 --cov=pmcp \
+            --cov-report=xml:coverage.xml \
+            --cov-report=term-missing \
+            --asyncio-mode=auto
+
+      - name: Upload coverage to Codecov
+        if: matrix.python-version == '3.11'
+        uses: codecov/codecov-action@v4
+        with:
+          files: pmcp-python/coverage.xml
+          flags: pmcp-python
+          fail_ci_if_error: false
+
+  # ==========================================================================
+  # Conformance suite — pmcp-conformance
+  # ==========================================================================
+  conformance-tests:
+    name: pmcp-conformance
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+
+      - name: Install conformance suite
+        working-directory: pmcp-conformance
+        run: |
+          python -m pip install --upgrade pip
+          pip install -e .
+
+      - name: Run conformance tests
+        working-directory: pmcp-conformance
+        run: pytest --asyncio-mode=auto -v
+
+  # ==========================================================================
+  # Type-check pmcp-python (non-blocking during the duplicate-clients cleanup)
+  # ==========================================================================
+  type-check:
+    name: pmcp-python / mypy
+    runs-on: ubuntu-latest
+    continue-on-error: true
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+
+      - name: Install
+        working-directory: pmcp-python
+        run: |
+          pip install mypy cryptography numpy
+          pip install -e .
+
+      - name: Run mypy
+        working-directory: pmcp-python
+        run: |
+          mypy v05/ pmcp/ \
+            --ignore-missing-imports \
+            --no-error-summary \
+            --python-version 3.11
+
+  # ==========================================================================
+  # Lint pmcp-python (non-blocking during cleanup — replaces `|| true`)
+  # ==========================================================================
+  lint:
+    name: pmcp-python / ruff + black
+    runs-on: ubuntu-latest
+    continue-on-error: true
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+
+      - name: Install linters
+        run: pip install ruff black
+
+      - name: Run ruff
+        working-directory: pmcp-python
+        run: ruff check v05/ pmcp/ --output-format=github
+
+      - name: Check black formatting
+        working-directory: pmcp-python
+        run: black --check v05/ pmcp/
+
+  # ==========================================================================
+  # Security scan (bandit + pip-audit) — informational only, uploads report
+  # ==========================================================================
+  security:
+    name: Security scan
+    runs-on: ubuntu-latest
+    continue-on-error: true
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+
+      - name: Install
+        run: pip install bandit pip-audit
+
+      - name: Run bandit (SAST) on shipping code
+        working-directory: pmcp-python
+        run: |
+          bandit -r v05/ pmcp/ \
+            -f json -o bandit-report.json \
+            -ll --quiet
+        continue-on-error: true
+
+      - name: Run pip-audit on pmcp-python
+        working-directory: pmcp-python
+        run: |
+          pip install -e .
+          pip-audit
+        continue-on-error: true
+
+      - name: Upload bandit report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: bandit-report
+          path: pmcp-python/bandit-report.json
+          if-no-files-found: ignore
+
+  # ==========================================================================
+  # Rust build — pmcp-rust (skeleton, will fail on pyo3 misconfig — known)
+  # ==========================================================================
+  rust-build:
+    name: pmcp-rust
+    runs-on: ubuntu-latest
+    continue-on-error: true
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Rust stable
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Cache Cargo
+        uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: pmcp-rust/pmcp-core -> target
+
+      - name: Build pmcp-core
+        working-directory: pmcp-rust/pmcp-core
+        run: cargo build --release
+
+      - name: Test pmcp-core
+        working-directory: pmcp-rust/pmcp-core
+        run: cargo test
+
+      - name: Build pmcp-ledger
+        working-directory: pmcp-rust/ledger
+        run: cargo build --release
+
+  # ==========================================================================
+  # TypeScript SDK build — pmcp-typescript (skeleton, no tests yet — known)
+  # ==========================================================================
+  typescript-sdk:
+    name: pmcp-typescript
+    runs-on: ubuntu-latest
+    continue-on-error: true
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Node.js 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Install dependencies
+        working-directory: pmcp-typescript
+        run: npm install --no-audit --no-fund
+
+      - name: Build TypeScript SDK
+        working-directory: pmcp-typescript
+        run: npm run build
+
+  # ==========================================================================
+  # Release to PyPI — pmcp-python only (triggered on v*.*.* tags)
+  # ==========================================================================
+  release:
+    name: Release pmcp-python to PyPI
+    runs-on: ubuntu-latest
+    needs:
+      - python-tests
+      - conformance-tests
+    if: startsWith(github.ref, 'refs/tags/v')
+    environment: release
+    permissions:
+      id-token: write   # OIDC trusted publishing
+      contents: write   # Create GitHub release
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install build tools
+        run: pip install build twine
+
+      - name: Build distribution
+        working-directory: pmcp-python
+        run: python -m build
+
+      - name: Publish to PyPI (trusted publishing)
+        uses: pypa/gh-action-pypi-publish@release/v1
+        with:
+          packages-dir: pmcp-python/dist/
+          print-hash: true
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: pmcp-python/dist/*
+          generate_release_notes: true
+          draft: false
+          prerelease: ${{ contains(github.ref, 'alpha') || contains(github.ref, 'beta') || contains(github.ref, 'rc') }}
+
+  # ==========================================================================
+  # CI Summary
+  # ==========================================================================
+  summary:
+    name: CI Summary
+    runs-on: ubuntu-latest
+    needs:
+      - python-tests
+      - conformance-tests
+      - type-check
+      - lint
+      - security
+      - rust-build
+      - typescript-sdk
+    if: always()
+
+    steps:
+      - name: Report status
+        run: |
+          echo "## pmcp-org CI Summary" >> "$GITHUB_STEP_SUMMARY"
+          echo "" >> "$GITHUB_STEP_SUMMARY"
+          echo "| Job              | Result |" >> "$GITHUB_STEP_SUMMARY"
+          echo "|------------------|--------|" >> "$GITHUB_STEP_SUMMARY"
+          echo "| python-tests     | ${{ needs.python-tests.result }} |" >> "$GITHUB_STEP_SUMMARY"
+          echo "| conformance-tests| ${{ needs.conformance-tests.result }} |" >> "$GITHUB_STEP_SUMMARY"
+          echo "| type-check       | ${{ needs.type-check.result }} |" >> "$GITHUB_STEP_SUMMARY"
+          echo "| lint             | ${{ needs.lint.result }} |" >> "$GITHUB_STEP_SUMMARY"
+          echo "| security         | ${{ needs.security.result }} |" >> "$GITHUB_STEP_SUMMARY"
+          echo "| rust-build       | ${{ needs.rust-build.result }} |" >> "$GITHUB_STEP_SUMMARY"
+          echo "| typescript-sdk   | ${{ needs.typescript-sdk.result }} |" >> "$GITHUB_STEP_SUMMARY"
+          echo "" >> "$GITHUB_STEP_SUMMARY"
+          echo "Blocking checks: **python-tests**, **conformance-tests**." >> "$GITHUB_STEP_SUMMARY"
+          echo "Non-blocking (marked as \`continue-on-error\` during the migration)" >> "$GITHUB_STEP_SUMMARY"
+          echo "so a failure surfaces on the PR page but does not gate merge:" >> "$GITHUB_STEP_SUMMARY"
+          echo "type-check, lint, security, rust-build, typescript-sdk." >> "$GITHUB_STEP_SUMMARY"

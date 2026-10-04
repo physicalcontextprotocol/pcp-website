@@ -1,0 +1,28 @@
+{
+  "choices": [
+    {
+      "finish_reason": "stop",
+      "index": 0,
+      "message": {
+        "content": "**Verification Report: Mobile (390px) Docs Site**\n\n1.  **Background & Typography:** ✅ **Pass.** Black background (`#000`) and white monospace font are correctly applied.\n2.  **Top Bar:** ✅ **Pass.** Hamburger menu (left), Logo/Wordmark (center-left), and links (right) are present. No overflow or cut-offs detected.\n3.  **Sidebar:** ✅ **Pass.** Left sidebar is hidden/collapsed as expected for mobile.\n4.  **Content Column:** ✅ **Pass.** \"PMCP\" H1 is clear, and the text column has sufficient padding (approx 20px) for readability.\n5.  **ASCII Diagram/Layout:** ✅ **Pass.** Text wraps naturally within the viewport width. The layout is fluid; no horizontal scrolling or breaking is observed.\n6.  **Footer:** ⚠️ **Partial Pass.** The footer area is not visible in the provided screenshot (content extends below the fold), so its presence/content cannot be verified from this image alone.\n\n**Defects Found:**\n*   **None.** The visible portion of the page renders correctly at 390px width without horizontal overflow, text clipping, or UI cramping.",
+        "role": "assistant"
+      }
+    }
+  ],
+  "created": 1791095989,
+  "id": "20261004143942bce90364f604464c",
+  "model": "glm-5v-turbo",
+  "object": "chat.completion",
+  "request_id": "20261004143942bce90364f604464c",
+  "usage": {
+    "completion_tokens": 264,
+    "completion_tokens_details": {
+      "reasoning_tokens": 0
+    },
+    "prompt_tokens": 522,
+    "prompt_tokens_details": {
+      "cached_tokens": 0
+    },
+    "total_tokens": 786
+  }
+}

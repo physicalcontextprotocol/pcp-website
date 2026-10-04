@@ -1,0 +1,28 @@
+{
+  "choices": [
+    {
+      "finish_reason": "stop",
+      "index": 0,
+      "message": {
+        "content": "**Verification Report:**\n\n1.  **Visual Style:** **Pass.** Background is solid black (`#000000`). Typography is strictly white/gray monospace (likely a system or custom mono font).\n2.  **Content Structure:** **Pass.**\n    *   H1 is \"E-Stop\".\n    *   Sections present: \"Wire form\", \"Why it bypasses the gate sequence\", \"What 'latch' means precisely\". (Note: The TOC also lists \"Triggering and handling\", which is likely further down the page, but requested sections are present).\n3.  **Code Blocks:** **Pass.**\n    *   Dark background with a thin, subtle border.\n    *   Subtle grayscale syntax highlighting (keys are slightly lighter/whiter than values).\n    *   Header contains label (\"PMCP/ESTOP – NOTIFICATION\") and \"COPY\" button on the right.\n4.  **Navigation Rail:** **Pass.** Right-side \"ON THIS PAGE\" rail is visible with correct heading links.\n5.  **Lists:** **N/A (Not Visible).** No bullet lists (dash markers) are visible in the current viewport.\n\n**Defects:**\n*   **None detected.** Layout is clean with no overlapping elements. Code blocks are fully rendered and readable. Text contrast is high.",
+        "role": "assistant"
+      }
+    }
+  ],
+  "created": 1791095970,
+  "id": "20261004143925d08457a7ea354244",
+  "model": "glm-5v-turbo",
+  "object": "chat.completion",
+  "request_id": "20261004143925d08457a7ea354244",
+  "usage": {
+    "completion_tokens": 276,
+    "completion_tokens_details": {
+      "reasoning_tokens": 0
+    },
+    "prompt_tokens": 1788,
+    "prompt_tokens_details": {
+      "cached_tokens": 0
+    },
+    "total_tokens": 2064
+  }
+}
