@@ -1,5 +1,6 @@
 import type { PageDef, Block } from "@/content/types";
 import { inlinePlain } from "@/content/types";
+import { slugify } from "./slug";
 
 export interface SearchDoc {
   route: string;
@@ -26,7 +27,7 @@ export function buildIndex(pages: PageDef[]): SearchDoc[] {
         page: p.title,
         section: section && tab ? `${section} — ${tab}` : section || tab,
         text: t,
-        anchor: null,
+        anchor: section && !tab ? slugify(section) : null,
       });
     };
 
