@@ -8,9 +8,17 @@ export const GITHUB_ORG = "https://github.com/physicalcontextprotocol";
 export function TopBar({
   onMenu,
   onSearch,
+  menuOpen,
+  searchOpen,
+  menuButtonRef,
+  searchButtonRef,
 }: {
   onMenu: () => void;
   onSearch: () => void;
+  menuOpen: boolean;
+  searchOpen: boolean;
+  menuButtonRef?: React.Ref<HTMLButtonElement>;
+  searchButtonRef?: React.Ref<HTMLButtonElement>;
 }) {
   return (
     <header
@@ -41,7 +49,9 @@ export function TopBar({
           <button
             type="button"
             aria-label="Open navigation"
+            aria-expanded={menuOpen}
             onClick={onMenu}
+            ref={menuButtonRef}
             style={{
               background: "none",
               border: 0,
@@ -86,6 +96,9 @@ export function TopBar({
           <button
             type="button"
             onClick={onSearch}
+            ref={searchButtonRef}
+            aria-expanded={searchOpen}
+            aria-haspopup="dialog"
             className="topsearch"
             style={{
               background: "none",

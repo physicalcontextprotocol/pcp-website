@@ -12,31 +12,47 @@ export function Sidebar({
   route: string;
   onNavigate?: () => void;
 }) {
-  // groups containing the active route start expanded
-  const initial: Record<string, boolean> = {};
-  for (const item of nav) {
-    if (item.children?.some((c) => c.route === route)) initial[item.label] = true;
-  }
-  const [open, setOpen] = useState<Record<string, boolean>>(initial);
+  // `toggled` holds only explicit user overrides; a group that was never
+  // touched derives its state from the active route, so deep links land with
+  // the containing group already expanded.
+  const [toggled, setToggled] = useState<Record<string, boolean>>({});
 
-  const toggle = (label: string) =>
-    setOpen((o) => ({ ...o, [label]: !o[label] }));
+  const isOpen = (item: NavItem) =>
+    toggled[item.label] ?? (item.children?.some((c) => c.route === route) ?? false);
+
+  const toggle = (label: string, current: boolean) =>
+    setToggled((t) => ({ ...t, [label]: !current }));
 
   return (
     <nav aria-label="Documentation">
-      {nav.map((item) =>
-        item.children ? (
+      {nav.map((item) => {
+        if (!item.children) {
+          return (
+            <a
+              key={item.route}
+              href={`#${item.route}`}
+              className="navitem"
+              aria-current={route === item.route ? "page" : undefined}
+              onClick={onNavigate}
+              style={{ display: "flex", marginBottom: 2 }}
+            >
+              {item.label}
+            </a>
+          );
+        }
+        const open = isOpen(item);
+        return (
           <div key={item.label} style={{ marginBottom: 6 }}>
             <button
               type="button"
               className="navgroup-label"
-              aria-expanded={!!open[item.label]}
-              onClick={() => toggle(item.label)}
+              aria-expanded={open}
+              onClick={() => toggle(item.label, open)}
             >
-              <span className="twist">{open[item.label] ? "−" : "+"}</span>
+              <span className="twist">{open ? "−" : "+"}</span>
               {item.label}
             </button>
-            {open[item.label] && (
+            {open && (
               <div style={{ paddingLeft: 14, marginBottom: 6 }}>
                 {item.children.map((c) => (
                   <a
@@ -52,19 +68,8 @@ export function Sidebar({
               </div>
             )}
           </div>
-        ) : (
-          <a
-            key={item.route}
-            href={`#${item.route}`}
-            className="navitem"
-            aria-current={route === item.route ? "page" : undefined}
-            onClick={onNavigate}
-            style={{ display: "flex", marginBottom: 2 }}
-          >
-            {item.label}
-          </a>
-        )
-      )}
+        );
+      })}
     </nav>
   );
 }

@@ -6,18 +6,20 @@ import { Sidebar } from "./Sidebar";
 import { SearchOverlay } from "./Search";
 import { BlockRenderer } from "./BlockRenderer";
 import { buildIndex, queryIndex } from "@/lib/searchIndex";
+import { trapTab, focusFirstWithin } from "@/lib/focus";
 import { NAV, PAGES } from "@/content";
 
-let lastRoute = "/";
-
-/* Hash is either a page route ("#/protocol/gates") or a heading anchor
-   ("#some-heading") — anchors must not reset the page route. */
+/* Hash is either a page route ("#/protocol/gates"), a bare heading anchor
+   ("#some-heading"), or a route + heading ("#/protocol/gates#gate-table") —
+   only the leading path segment is the route. */
 function pageFromHash(): { route: string | null; hash: string } {
-  const h = window.location.hash.replace(/^#/, "");
-  if (!h.startsWith("/")) return { route: null, hash: h };
-  const r = h.replace(/\/+$/, "") || "/";
-  lastRoute = r;
-  return { route: r, hash: h };
+  const raw = window.location.hash.replace(/^#/, "");
+  const cut = raw.indexOf("#");
+  const path = cut === -1 ? raw : raw.slice(0, cut);
+  const hash = cut === -1 ? "" : raw.slice(cut + 1);
+  if (!path.startsWith("/")) return { route: null, hash };
+  const route = path.replace(/\/+$/, "") || "/";
+  return { route, hash };
 }
 
 interface Heading {
@@ -42,6 +44,24 @@ export function DocsApp() {
     [route]
   );
 
+  const menuButtonRef = useRef<HTMLButtonElement>(null);
+  const searchButtonRef = useRef<HTMLButtonElement>(null);
+  const menuPanelRef = useRef<HTMLDivElement>(null);
+
+  const closeMenu = useCallback(() => setMenuOpen(false), []);
+  const closeSearch = useCallback(() => {
+    setSearchOpen(false);
+    setQuery("");
+  }, []);
+  const openMenu = useCallback(() => {
+    setSearchOpen(false);
+    setMenuOpen(true);
+  }, []);
+  const openSearch = useCallback(() => {
+    setMenuOpen(false);
+    setSearchOpen(true);
+  }, []);
+
   // Derive the on-this-page rail from the rendered DOM, so it reflects
   // only visible content (e.g. the active SDK tab) and never duplicates.
   const [headings, setHeadings] = useState<Heading[]>([]);
@@ -49,20 +69,23 @@ export function DocsApp() {
     const article = document.querySelector("article");
     if (!article) return;
     let raf = 0;
-    const derive = () => {
-      raf = requestAnimationFrame(() => {
-        const els = Array.from(article.querySelectorAll<HTMLElement>("h2, h3"));
-        setHeadings(
-          els.map((el) => ({
-            id: el.id,
-            text: el.textContent ?? "",
-            depth: el.tagName === "H2" ? 2 : 3,
-          }))
-        );
-      });
+    const read = () => {
+      const els = Array.from(article.querySelectorAll<HTMLElement>("h2, h3"));
+      setHeadings(
+        els.map((el) => ({
+          id: el.id,
+          text: el.textContent ?? "",
+          depth: el.tagName === "H2" ? 2 : 3,
+        }))
+      );
     };
-    derive();
-    const mo = new MutationObserver(derive);
+    // first pass runs synchronously so the rail paints even when the tab is
+    // backgrounded and requestAnimationFrame is throttled; later mutations are
+    // coalesced into a single frame
+    read();
+    const mo = new MutationObserver(() => {
+      raf = requestAnimationFrame(read);
+    });
     mo.observe(article, { childList: true, subtree: true });
     return () => {
       mo.disconnect();
@@ -71,6 +94,10 @@ export function DocsApp() {
   }, [route]);
 
   const hits = useMemo(() => queryIndex(searchIndex, query), [query]);
+  const pageCount = useMemo(
+    () => new Set(searchIndex.map((d) => d.route)).size,
+    []
+  );
 
   useEffect(() => {
     const onHash = () => {
@@ -90,6 +117,18 @@ export function DocsApp() {
   // global shortcuts: Cmd/Ctrl+K or "/" opens search
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") {
+        if (searchOpen) {
+          e.preventDefault();
+          closeSearch();
+          searchButtonRef.current?.focus();
+        } else if (menuOpen) {
+          e.preventDefault();
+          closeMenu();
+          menuButtonRef.current?.focus();
+        }
+        return;
+      }
       const target = e.target as HTMLElement | null;
       const typing =
         target &&
@@ -98,12 +137,12 @@ export function DocsApp() {
           target.isContentEditable);
       if ((e.key === "k" && (e.metaKey || e.ctrlKey)) || (e.key === "/" && !typing)) {
         e.preventDefault();
-        setSearchOpen(true);
+        openSearch();
       }
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, []);
+  }, [searchOpen, menuOpen, closeSearch, closeMenu]);
 
   // lock body scroll when overlays open
   useEffect(() => {
@@ -113,18 +152,24 @@ export function DocsApp() {
     };
   }, [menuOpen, searchOpen]);
 
+  // move focus into the mobile menu when it opens
+  useEffect(() => {
+    if (menuOpen) focusFirstWithin(menuPanelRef.current);
+  }, [menuOpen]);
+
   // scroll spy over h2/h3
   useEffect(() => {
     if (headings.length === 0) return;
     const observer = new IntersectionObserver(
       (entries) => {
-        for (const en of entries) {
-          if (en.isIntersecting) {
-            setActiveHeading(en.target.id);
-            return;
-          }
-        }
-        // if none intersecting, keep the last active
+        const visible = entries
+          .filter((en) => en.isIntersecting)
+          .sort(
+            (a, b) =>
+              (a.target as HTMLElement).offsetTop -
+              (b.target as HTMLElement).offsetTop
+          );
+        if (visible.length > 0) setActiveHeading(visible[0].target.id);
       },
       { rootMargin: "-60px 0px -70% 0px", threshold: 0 }
     );
@@ -135,15 +180,16 @@ export function DocsApp() {
     return () => observer.disconnect();
   }, [headings]);
 
-  const closeMenu = useCallback(() => setMenuOpen(false), []);
-  const closeSearch = useCallback(() => {
-    setSearchOpen(false);
-    setQuery("");
-  }, []);
-
   return (
     <div style={{ minHeight: "100vh", display: "flex", flexDirection: "column" }}>
-      <TopBar onMenu={() => setMenuOpen(true)} onSearch={() => setSearchOpen(true)} />
+      <TopBar
+        onMenu={openMenu}
+        onSearch={openSearch}
+        menuOpen={menuOpen}
+        searchOpen={searchOpen}
+        menuButtonRef={menuButtonRef}
+        searchButtonRef={searchButtonRef}
+      />
 
       {/* desktop sidebar */}
       <aside
@@ -172,10 +218,18 @@ export function DocsApp() {
             background: "rgba(0,0,0,0.85)",
           }}
           onMouseDown={(e) => {
-            if (e.target === e.currentTarget) closeMenu();
+            if (e.target === e.currentTarget) {
+              closeMenu();
+              menuButtonRef.current?.focus();
+            }
           }}
         >
           <div
+            ref={menuPanelRef}
+            role="dialog"
+            aria-modal="true"
+            aria-label="Documentation navigation"
+            onKeyDown={trapTab}
             style={{
               position: "absolute",
               top: 0,
@@ -190,7 +244,10 @@ export function DocsApp() {
           >
             <button
               className="navgroup-label"
-              onClick={closeMenu}
+              onClick={() => {
+                closeMenu();
+                menuButtonRef.current?.focus();
+              }}
               style={{ marginBottom: 12 }}
             >
               <span className="twist">×</span>
@@ -285,7 +342,7 @@ export function DocsApp() {
       {/* on-this-page rail (xl only) */}
       {headings.length > 0 && (
         <div
-          className="onpage hidden xl:block"
+          className="onpage hidden min-[1364px]:block"
           style={{
             position: "fixed",
             top: 84,
@@ -313,6 +370,7 @@ export function DocsApp() {
         hits={hits}
         query={query}
         onQuery={setQuery}
+        pageCount={pageCount}
       />
     </div>
   );
