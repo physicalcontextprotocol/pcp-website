@@ -10,7 +10,7 @@ const py: Block[] = [
     kind: "code",
     lang: "bash",
     title: "install",
-    content: "pip install pmcp",
+    content: "pip install physicalcontextprotocol",
   },
   { kind: "p", text: "Python 3.9–3.12. Async throughout — the client is built on `asyncio`, and the test suites run with `pytest --asyncio-mode=auto`." },
 
@@ -21,8 +21,9 @@ const py: Block[] = [
     title: "client.py",
     content: `from pmcp import PMCPClient
 
-client = PMCPClient("http://127.0.0.1:7000/mcp")
-client.initialize()  # handshake; raises on version mismatch`,
+client = PMCPClient()                 # name/version only — no URL
+await client.connect_http("http://arm-01.local:8080")
+await client.connect_http("http://127.0.0.1:7000/mcp")  # runs the handshake`,
   },
 
   { kind: "h3", text: "Lease methods" },
@@ -30,13 +31,18 @@ client.initialize()  # handshake; raises on version mismatch`,
     kind: "code",
     lang: "python",
     title: "leases",
-    content: `lease = client.leases_acquire(
+    content: `grant = await client.request_lease(
     zone_id="cell-north",
     duration_ms=30_000,
+    bid_energy_j=120.0,
 )
-# LeaseDeniedError carries holder + expires_ms for backing off
-
-client.leases_release(lease.lease_id)  # returns bool: was it held`,
+lease = grant["lease"]
+# Check the state string; there is no LeaseDeniedError. A denial comes
+# back as a normal grant with state != "ACTIVE".
+if lease["state"] == "ACTIVE":
+    await client.call_actuation("move_to", {"x": 0.4, "y": 0.0, "z": 0.2},
+                                lease_token=lease["lease_id"])
+    await client.release_lease(lease["lease_id"])`,
   },
 
   { kind: "h3", text: "Gate hooks (server side)" },
@@ -66,14 +72,15 @@ server.set_shadow_preview(shadow.predict_and_approve)
 server.serve(port=7000)`,
   },
 
-  { kind: "h3", text: "E-Stop handler registration" },
+  { kind: "h3", text: "Triggering E-Stop" },
   {
     kind: "code",
     lang: "python",
-    content: `def on_estop(reason: str, source: str) -> None:
-    client.abort_motion()
-
-client.on_estop(on_estop)`,
+    content: `# There is no handler to register. estop() is a first-class call
+# that bypasses the lease/constitution/shadow gates entirely.
+# source: "hardware_button" | "software_watchdog"
+#         | "operator_console" | "gate_failure_escalation"
+await client.estop(source="operator_console")`,
   },
 
   { kind: "h3", text: "Error handling" },
@@ -94,13 +101,13 @@ client.on_estop(on_estop)`,
   { kind: "h3", text: "Language notes" },
   {
     kind: "p",
-    text: "The package currently ships parallel implementations under `pmcp/`, `sdk/`, and `v05/` — an inheritance of the pre-split monorepo, [flagged in the org's migration map](https://github.com/physicalcontextprotocol/pmcp-org/blob/main/MIGRATION_MAP.md) with consolidation as the top-priority cleanup. Until the canonical implementation is chosen, target the `v05` namespaces in new code: they speak the current wire version, and they are what CI's smoke-import step pins.",
+    text: "The package currently ships parallel implementations under `pmcp/`, `sdk/`, and `v05/` — an inheritance of the pre-split monorepo, [flagged in the org's migration map](https://github.com/physicalcontextprotocol/pmcp-spec/blob/main/MIGRATION_MAP.md) with consolidation as the top-priority cleanup. Until the canonical implementation is chosen, target the `v05` namespaces in new code: they speak the current wire version, and they are what CI's smoke-import step pins.",
   },
 
   { kind: "h3", text: "Tests and conformance" },
   {
     kind: "p",
-    text: "**213/213 tests passing** across the Python matrix (3.9–3.12). To run the suite locally and against the conformance suite:",
+    text: "**159/160 tests passing** across the Python matrix (3.9–3.12) — 160 collected, 1 skip, and every collected test asserts on real SDK behaviour. To run the suite locally and against the conformance suite:",
   },
   {
     kind: "code",
@@ -127,7 +134,7 @@ const ts: Block[] = [
     kind: "code",
     lang: "bash",
     title: "install",
-    content: "npm install @physicalcontextprotocol/pmcp",
+    content: "npm install physicalcontextprotocol",
   },
   { kind: "p", text: "Node 20 or newer, ESM. Types are generated from the same wire types the Python and Rust SDKs use — the schema is the source, the SDK is a projection." },
 
@@ -136,10 +143,13 @@ const ts: Block[] = [
     kind: "code",
     lang: "typescript",
     title: "client.ts",
-    content: `import { PMCPClient } from "@physicalcontextprotocol/pmcp";
+    content: `import { PMCPServerClient } from "physicalcontextprotocol";
 
-const client = new PMCPClient("http://127.0.0.1:7000/mcp");
-await client.initialize();  // handshake; throws on version mismatch`,
+const client = new PMCPServerClient({
+  transport: "http",
+  serverUrl: "http://127.0.0.1:7000/mcp",
+});
+await client.connect();       // transport + initialize handshake`,
   },
 
   { kind: "h3", text: "Lease methods" },
@@ -147,13 +157,18 @@ await client.initialize();  // handshake; throws on version mismatch`,
     kind: "code",
     lang: "typescript",
     title: "leases",
-    content: `const lease = await client.leasesAcquire({
-  zoneId: "cell-north",
-  durationMs: 30_000,
-});
-// LeaseDeniedError carries holder + expiresMs for backing off
+    content: `const lease = await client.requestLease(
+  "arm-01",        // robotId
+  "cell-north",    // zoneId
+  30_000,          // durationMs
+  120,             // bidEnergyJ
+);
+// lease.state is "GRANTED" | "DENIED" | ... - check it before acting
 
-await client.leasesRelease(lease.leaseId);  // returns was-held`,
+await client.callTool("move_to", { x: 0.4, y: 0.0, z: 0.2 },
+  { lease_token: lease.lease_id });
+
+const wasHeld = await client.releaseLease(lease.lease_id);`,
   },
 
   { kind: "h3", text: "Gate hooks (server side)" },
@@ -165,7 +180,7 @@ await client.leasesRelease(lease.leaseId);  // returns was-held`,
     kind: "code",
     lang: "typescript",
     title: "server.ts",
-    content: `import { PMCPServer } from "@physicalcontextprotocol/pmcp";
+    content: `import { PMCPServer } from "physicalcontextprotocol";
 
 const server = new PMCPServer({ robotId: "arm-01", endpoint: "/mcp" });
 
@@ -185,10 +200,10 @@ await server.serve(7000);`,
   {
     kind: "code",
     lang: "typescript",
-    content: `client.onEstop((event) => {
-  // keep it fast — signal the control loop, don't do work here
-  safeStop.flag();
-});`,
+    content: `// No handler registration - estop is a request, and it is
+// lease-independent: it bypasses every gate.
+await client.setEstop(true);
+await client.setEstop(false);`,
   },
 
   { kind: "h3", text: "Error handling" },
@@ -234,17 +249,31 @@ const rs: Block[] = [
     kind: "code",
     lang: "bash",
     title: "install",
-    content: "cargo add pmcp-core",
+    content: "cargo add physicalcontextprotocol",
   },
-  { kind: "p", text: "The `pmcp-core` crate from the [`pmcp-rust`](https://github.com/physicalcontextprotocol/pmcp-rust) repository. Tokio-based async runtime." },
+  { kind: "p", text: "The `physicalcontextprotocol` crate from the [`pmcp-rust`](https://github.com/physicalcontextprotocol/pmcp-rust) repository. Tokio-based async runtime." },
 
   { kind: "h3", text: "Client construction" },
+  {
+    kind: "p",
+    text: "There is no high-level client type. The crate ships transports, and you drive JSON-RPC over the channels `Transport::connect` returns. A runnable two-process example is in [`pmcp-core/examples/server_and_client.rs`](https://github.com/physicalcontextprotocol/pmcp-rust/blob/main/pmcp-core/examples/server_and_client.rs).",
+  },
   {
     kind: "code",
     lang: "rust",
     title: "client.rs",
-    content: `let client = PMCPClient::connect("http://127.0.0.1:7000/mcp").await?;
-client.initialize().await?;  // handshake; errors on version mismatch`,
+    content: `use physicalcontextprotocol::{TcpClientTransport, Transport};
+use std::net::SocketAddr;
+
+let addr: SocketAddr = "127.0.0.1:7000".parse()?;
+let (tx, mut rx) = TcpClientTransport::new(addr).connect().await?;
+
+tx.send(serde_json::json!({
+    "jsonrpc": "2.0", "id": 1, "method": "initialize",
+    "params": { "protocolVersion": "0.5" }
+})).await?;
+
+let handshake = rx.recv().await.unwrap();`,
   },
 
   { kind: "h3", text: "Lease methods" },
@@ -252,12 +281,19 @@ client.initialize().await?;  // handshake; errors on version mismatch`,
     kind: "code",
     lang: "rust",
     title: "leases",
-    content: `let lease = client
-    .leases_acquire("cell-north", 30_000)
-    .await?;
-// Error::LeaseDenied { holder, expires_ms } — back off and retry later
+    content: `tx.send(serde_json::json!({
+    "jsonrpc": "2.0", "id": 2, "method": "lease/request",
+    "params": { "zone_id": "cell-north", "duration_ms": 30_000 }
+})).await?;
 
-client.leases_release(&lease.lease_id).await?;  // bool: was it held`,
+let grant = &rx.recv().await.unwrap()["result"];
+// state is GRANTED / DENIED / EXPIRED / RELEASED — not a boolean
+if grant["state"] == "GRANTED" {
+    tx.send(serde_json::json!({
+        "jsonrpc": "2.0", "id": 3, "method": "lease/release",
+        "params": { "lease_id": grant["lease_id"] }
+    })).await?;
+}`,
   },
 
   { kind: "h3", text: "Gate hooks (server side)" },
@@ -280,59 +316,76 @@ server.run().await?;`,
   {
     kind: "code",
     lang: "rust",
-    content: `// handler runs on the notification task — keep it fast;
-// signal your control loop through an atomic or channel
-static LATCHED: AtomicBool = AtomicBool::new(false);
-
-client.on_estop(|event| {
-    LATCHED.store(true, Ordering::SeqCst);
-});`,
+    content: `// Estop is a request, not a subscription - there is no
+// handler to register and no notification to await.
+while let Some(message) = rx.recv().await {
+    // \`pmcp/estop\` arrives as a JSON-RPC notification (no "id").
+    if message["method"] == "pmcp/estop" {
+        let active = message["params"]["active"].as_bool().unwrap_or(true);
+        LATCHED.store(active, Ordering::SeqCst);
+    }
+}`,
   },
 
   { kind: "h3", text: "Error handling" },
   {
     kind: "p",
-    text: "One error enum, pattern-matched — every protocol failure is a variant with the data you need to react:",
+    text: "Failures arrive two ways. A transport or protocol problem is a `PmcpError`; a policy refusal — lease denied, constitution rule violated, shadow rejected, E-Stop latched — is a **successful JSON-RPC response** whose payload says so. Both are matched on the same error enum:",
   },
   {
     kind: "code",
     lang: "rust",
     title: "error",
-    content: `match client.actuations_execute("move_to", params).await {
-    Ok(result)                  => { /* success, final_pose, energy */ }
-    Err(Error::LeaseDenied { holder, expires_ms }) => { /* back off */ }
-    Err(Error::ConstitutionViolation { rule })     => { /* rule id, e.g. CONST-01 */ }
-    Err(Error::ShadowRejected { reason })          => { /* monitor veto */ }
-    Err(Error::EStopLatched)                       => { /* latch is set */ }
-    Err(Error::Transport(e))                       => { /* connection */ }
+    content: `use physicalcontextprotocol::{PmcpError, PmcpErrorCode};
+
+// Transport / protocol failures
+match transport.connect().await {
+    Ok(channels) => {}
+    Err(PmcpError::Transport(e)) => { /* connection */ }
+    Err(PmcpError::MethodNotFound { .. }) => { /* server is older */ }
+    Err(other) => return Err(other.into()),
+}
+
+// Policy refusals are NOT errors — inspect the payload
+let reply = send(tools_call).await?;
+if reply["error"]["code"] == PmcpErrorCode::ConstitutionViolation as i64 {
+    // e.g. CONST-01
 }`,
   },
 
-  { kind: "h3", text: "Language notes — async Clone" },
+  { kind: "h3", text: "Language notes — sharing one connection" },
   {
     kind: "p",
-    text: "The client handle is `Clone`, and this is worth documenting explicitly because it was a real bug: earlier revisions of `pmcp-core` held the connection as a borrowed field, which made the client unusable across `await` points in spawned tasks — the borrow checker rejected every natural concurrency pattern. The fix landed and is covered by regression tests, but the **correct pattern** is worth stating once so it is not re-discovered the hard way:",
+    text: "There is no client handle to clone, because there is no client object. `connect()` hands you a `(mpsc::Sender<Value>, mpsc::Receiver<Value>)` pair, and `Sender` is `Clone` — so the pattern for concurrent work is to clone the **sender** into each task and keep a single reader task that demultiplexes responses by `id`:",
   },
   {
     kind: "code",
     lang: "rust",
     title: "the correct pattern",
-    content: `// PMCPClient is Clone — a clone is a cheap handle (Arc) over
-// the SAME connection. Clone into tasks; never hold &mut across await.
+    content: `// Clone the Sender, never share the Receiver: mpsc::Receiver has no
+// clone impl, so exactly one task may consume inbound messages.
 
-let handle = client.clone();
+let writer = tx.clone();
 tokio::spawn(async move {
-    // this task owns its handle — no borrows of the original
-    let lease = handle.leases_acquire("cell-north", 30_000).await?;
-    handle.leases_release(&lease.lease_id).await?;
-    Ok::<_, Error>(())
+    writer.send(serde_json::json!({
+        "jsonrpc": "2.0", "id": 2, "method": "lease/request",
+        "params": { "zone_id": "cell-north", "duration_ms": 30_000 }
+    })).await?;
+    Ok::<_, PmcpError>(())
 });
 
-// the original client remains usable on the main task`,
+// one reader owns rx and routes replies to whichever task is waiting
+while let Some(message) = rx.recv().await {
+    match message["id"].as_u64() {
+        Some(1) => { /* handshake reply */ }
+        Some(2) => { /* lease grant */ }
+        _ => { /* notification, e.g. pmcp/estop — no "id" */ }
+    }
+}`,
   },
   {
     kind: "p",
-    text: "One build quirk to know about: `pmcp-core`'s optional `python` feature gates the pyo3 bindings, and plain `cargo build` needs the extension-module environment only when that feature is enabled. The pure-Rust path — `cargo build` with default features — is the supported one for SDK use.",
+    text: "One build quirk to know about: `physicalcontextprotocol`'s optional `python` feature gates the pyo3 bindings, and plain `cargo build` needs the extension-module environment only when that feature is enabled. The pure-Rust path — `cargo build` with default features — is the supported one for SDK use.",
   },
 
   { kind: "h3", text: "Tests and conformance" },

@@ -172,12 +172,10 @@ export const protocolEstopPage: PageDef = {
       kind: "code",
       lang: "python",
       title: "trigger and handle — Python",
-      content: `# handle: registered up front, before any actuation
-def on_estop(reason, source):
-    client.abort_motion()          # drop to safe state immediately
-    scheduler.halt_pending_plans() # nothing resumes on its own
-
-client.on_estop(on_estop)
+      content: `# Estop is a request, not a subscription - there is no
+# handler to register. It bypasses every gate on the server.
+#
+# trigger: any client, any time, no gate queue
 
 # trigger: any client, any time, no gate queue
 client.safety_estop_engage(reason="obstacle-in-cell")`,

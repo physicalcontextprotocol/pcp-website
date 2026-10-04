@@ -7,7 +7,7 @@ const py: Block[] = [
     kind: "code",
     lang: "bash",
     title: "install",
-    content: "pip install pmcp",
+    content: "pip install physicalcontextprotocol",
   },
   {
     kind: "p",
@@ -25,44 +25,51 @@ const py: Block[] = [
     title: "lease.py",
     content: `from pmcp import PMCPClient
 
-client = PMCPClient("http://127.0.0.1:7000/mcp")
-client.initialize()   # JSON-RPC handshake, protocolVersion "0.5"
+client = PMCPClient()                 # name/version only — no URL
+await client.connect_http("http://arm-01.local:8080")
+# connect_http performs the JSON-RPC handshake itself;
+# protocolVersion is negotiated to "0.5"
 
 # 1. acquire the zone you intend to act in
-lease = client.leases_acquire(
+grant = await client.request_lease(
     zone_id="cell-north",
     duration_ms=30_000,
+    bid_energy_j=120.0,
 )
+lease = grant["lease"]
 
-if not lease.granted:
-    # denial carries the current holder and its expiry — back off
+if lease["state"] != "ACTIVE":
+    # a denial is a normal response, not an exception — back off
     # and retry after the lease lapses, never around it
-    print(f"denied: zone held until {lease.expires_ms}")
+    print(f"denied: zone held until {lease['expires_at']}")
 else:
     try:
-        result = client.actuations_execute("move_to", x=0.4, y=0.0, z=0.2)
-        print(result.success, result.final_pose)
+        result = await client.call_actuation(
+            "move_to",
+            {"x": 0.4, "y": 0.0, "z": 0.2},
+            lease_token=lease["lease_id"],
+        )
+        print(result)
     finally:
         # 2. always release, including on error paths
-        client.leases_release(lease.lease_id)`,
+        await client.release_lease(lease["lease_id"])`,
   },
 
-  { kind: "h3", text: "Register an E-Stop handler" },
+  { kind: "h3", text: "Engage E-Stop" },
   {
     kind: "p",
-    text: "E-Stop notifications arrive as `pmcp/estop` messages whenever any participant engages the latch. Register a handler before your first actuation so the callback is live from the start:",
+    text: "There is no handler to register. The latch lives in the server's safety state, so it holds even against a client that ignores it, and `estop()` is a first-class call that bypasses the lease, constitution, and shadow gates entirely:",
   },
   {
     kind: "code",
     lang: "python",
     title: "estop.py",
-    content: `def on_estop(reason: str, source: str) -> None:
-    # drop to a safe state immediately; the latch stays engaged
-    # until an explicit safety/estop/disengage — do not resume here
-    client.abort_motion()
-    print(f"E-STOP from {source}: {reason}")
+    content: `# source: "hardware_button" | "software_watchdog"
+#         | "operator_console" | "gate_failure_escalation"
+await client.estop(source="operator_console")
 
-client.on_estop(on_estop)`,
+# The latch stays engaged until an explicit disengage. Never resume
+# from inside an error handler - drop to a safe state and wait.`,
   },
   {
     kind: "p",
@@ -77,7 +84,7 @@ const ts: Block[] = [
     kind: "code",
     lang: "bash",
     title: "install",
-    content: "npm install @physicalcontextprotocol/pmcp",
+    content: "npm install physicalcontextprotocol",
   },
   {
     kind: "p",
@@ -89,49 +96,52 @@ const ts: Block[] = [
     kind: "code",
     lang: "typescript",
     title: "lease.ts",
-    content: `import { PMCPClient } from "@physicalcontextprotocol/pmcp";
+    content: `import { PMCPServerClient } from "physicalcontextprotocol";
 
-const client = new PMCPClient("http://127.0.0.1:7000/mcp");
-await client.initialize();   // JSON-RPC handshake, protocolVersion "0.5"
+const client = new PMCPServerClient({
+  transport: "http",        // "stdio" | "websocket" | "http"
+  serverUrl: "http://127.0.0.1:7000/mcp",
+});
+await client.connect();   // transport + initialize handshake
 
 // 1. acquire the zone you intend to act in
-const lease = await client.leasesAcquire({
-  zoneId: "cell-north",
-  durationMs: 30_000,
-});
+const lease = await client.requestLease(
+  "arm-01",       // robotId
+  "cell-north",   // zoneId
+  30_000,         // durationMs
+  120,            // bidEnergyJ
+);
 
-if (!lease.granted) {
-  // denial carries the current holder and its expiry — back off
-  // and retry after the lease lapses, never around it
-  console.log(\`denied: zone held until \${lease.expiresMs}\`);
+if (lease.state !== "GRANTED") {
+  // a denial is a normal return, not a thrown error - back off and
+  // retry after the lease lapses, never around it
+  console.log("denied: zone held until " + lease.expires_at);
 } else {
   try {
-    const result = await client.actuationsExecute("move_to", {
-      x: 0.4, y: 0.0, z: 0.2,
-    });
-    console.log(result.success, result.finalPose);
+    const result = await client.callTool("move_to",
+      { x: 0.4, y: 0.0, z: 0.2 },
+      { lease_token: lease.lease_id });
+    console.log(result);
   } finally {
     // 2. always release, including on error paths
-    await client.leasesRelease(lease.leaseId);
+    await client.releaseLease(lease.lease_id);
   }
 }`,
   },
 
-  { kind: "h3", text: "Register an E-Stop handler" },
+  { kind: "h3", text: "Engage E-Stop" },
   {
     kind: "p",
-    text: "E-Stop notifications arrive as `pmcp/estop` messages whenever any participant engages the latch. Register a handler before your first actuation so the callback is live from the start:",
+    text: "Same shape as the Python and Rust SDKs: `setEstop` is a request, not a subscription. It needs no registration, and it bypasses the lease, constitution, and shadow gates:",
   },
   {
     kind: "code",
     lang: "typescript",
     title: "estop.ts",
-    content: `client.onEstop((event) => {
-  // drop to a safe state immediately; the latch stays engaged
-  // until an explicit safety/estop/disengage — do not resume here
-  awaitSafeStop();
-  console.log(\`E-STOP from \${event.source}: \${event.reason}\`);
-});`,
+    content: `await client.setEstop(true);   // latch
+// drop to a safe state now; the latch stays engaged until an
+// explicit disengage - do not resume from a catch block
+await client.setEstop(false);  // release`,
   },
   {
     kind: "p",
@@ -146,11 +156,11 @@ const rs: Block[] = [
     kind: "code",
     lang: "bash",
     title: "install",
-    content: "cargo add pmcp-core",
+    content: "cargo add physicalcontextprotocol",
   },
   {
     kind: "p",
-    text: "Source lives in the [`pmcp-rust`](https://github.com/physicalcontextprotocol/pmcp-rust) repository (`pmcp-core` crate). Rust's async client is `Clone` — the correct concurrency pattern is documented in [Rust SDK notes](/sdks/rust).",
+    text: "Source lives in the [`pmcp-rust`](https://github.com/physicalcontextprotocol/pmcp-rust) repository (`physicalcontextprotocol` crate). Rust's async client is `Clone` — the correct concurrency pattern is documented in [Rust SDK notes](/sdks/rust).",
   },
 
   { kind: "h3", text: "Request a lease, handle denial, release" },
@@ -158,31 +168,46 @@ const rs: Block[] = [
     kind: "code",
     lang: "rust",
     title: "lease.rs",
-    content: `use pmcp_core::PMCPClient;
+    content: `use physicalcontextprotocol::{TcpClientTransport, Transport};
+use std::net::SocketAddr;
 
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {
-    // PMCPClient is Clone — each clone is a cheap handle over the
-    // same connection; spawn tasks with clones, not references
-    let client = PMCPClient::connect("http://127.0.0.1:7000/mcp").await?;
-    client.initialize().await?;   // protocolVersion "0.5"
+    // The crate exposes transports, not a high-level client, so you drive
+    // JSON-RPC over the channels that connect() returns.
+    let addr: SocketAddr = "127.0.0.1:7000".parse()?;
+    let (tx, mut rx) = TcpClientTransport::new(addr).connect().await?;
 
-    // 1. acquire the zone you intend to act in
-    let lease = client
-        .leases_acquire("cell-north", 30_000)
-        .await?;
+    // 1. acquire the zone you intend to act in. The wire field is "state",
+    //    not a boolean: GRANTED / DENIED / EXPIRED / RELEASED.
+    tx.send(json!({
+        "jsonrpc": "2.0", "id": 1, "method": "lease/request",
+        "params": { "zone_id": "cell-north", "duration_ms": 30_000,
+                    "bid_energy_j": 120 }
+    })).await?;
+    let grant = rx.recv().await.unwrap();
+    let result = &grant["result"];
 
-    if !lease.granted {
-        // denial carries the current holder and its expiry
-        println!("denied: zone held until {}", lease.expires_ms);
-    } else {
-        let result = client
-            .actuations_execute("move_to", json!({ "x": 0.4, "y": 0.0, "z": 0.2 }))
-            .await;
-        // 2. always release, including on error paths
-        client.leases_release(&lease.lease_id).await?;
-        println!("{}", result?.success);
+    if result["state"] != "GRANTED" {
+        println!("denied: zone held until {}", result["expires_at"]);
+        return Ok(());
     }
+    let lease_id = result["lease_id"].as_str().unwrap().to_owned();
+
+    // 2. actuate
+    tx.send(json!({
+        "jsonrpc": "2.0", "id": 2, "method": "tools/call",
+        "params": { "name": "move_to",
+                    "arguments": { "x": 0.4, "y": 0.0, "z": 0.2 } }
+    })).await?;
+    println!("{}", rx.recv().await.unwrap());
+
+    // 3. always release, including on error paths
+    tx.send(json!({
+        "jsonrpc": "2.0", "id": 3, "method": "lease/release",
+        "params": { "lease_id": lease_id }
+    })).await?;
+    let _ = rx.recv().await;
     Ok(())
 }`,
   },
@@ -190,21 +215,26 @@ async fn main() -> anyhow::Result<()> {
   { kind: "h3", text: "Register an E-Stop handler" },
   {
     kind: "p",
-    text: "E-Stop notifications arrive as `pmcp/estop` messages whenever any participant engages the latch. Register a handler before your first actuation so the callback is live from the start:",
+    text: "E-Stop is enforced by the server, not by client cooperation. To surface it in your own control loop, watch the same inbound channel every other message arrives on:",
   },
   {
     kind: "code",
     lang: "rust",
     title: "estop.rs",
-    content: `// handler runs on the client's notification task —
-// it must be fast and must not block: signal your control
-// loop through an atomic or a channel
+    content: `// E-Stop is enforced by the server, not by client cooperation. The
+// latch lives in the server's safety state, so a client that ignores it
+// still cannot actuate. The client observes it on the same inbound
+// channel every other message arrives on:
 static LATCHED: AtomicBool = AtomicBool::new(false);
 
-client.on_estop(|event| {
-    LATCHED.store(true, Ordering::SeqCst);
-    eprintln!("E-STOP from {}: {}", event.source, event.reason);
-});`,
+while let Some(message) = rx.recv().await {
+    // \`pmcp/estop\` arrives as a JSON-RPC notification (no "id").
+    if message["method"] == "pmcp/estop" {
+        let active = message["params"]["active"].as_bool().unwrap_or(true);
+        LATCHED.store(active, Ordering::SeqCst);
+        eprintln!("E-STOP {}", if active { "ENGAGED" } else { "released" });
+    }
+}`,
   },
   {
     kind: "p",
