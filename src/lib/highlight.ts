@@ -25,6 +25,14 @@ const KEYWORDS: Partial<Record<Lang, string[]>> = {
     "dyn", "where", "as", "type", "unsafe", "crate", "self", "Self", "super",
     "true", "false", "Some", "None", "Ok", "Err",
   ],
+  cpp: [
+    "include", "define", "namespace", "using", "class", "struct", "enum",
+    "public", "private", "protected", "virtual", "override", "template",
+    "typename", "auto", "const", "constexpr", "static", "return", "if",
+    "else", "try", "catch", "throw", "for", "while", "do", "switch", "case",
+    "break", "continue", "new", "delete", "void", "bool", "int", "double",
+    "float", "true", "false", "nullptr", "this",
+  ],
   toml: ["true", "false"],
 };
 

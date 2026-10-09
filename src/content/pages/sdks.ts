@@ -1,6 +1,6 @@
 import type { PageDef, Block } from "../types";
 
-/* Each SDK page shows all three languages as tabs — one URL per language in
+/* Each SDK page shows every language as tabs — one URL per language in
    the sitemap, same comparable structure inside every tab. */
 
 /* ── Python ──────────────────────────────────────────────────────────────── */
@@ -143,16 +143,16 @@ const ts: Block[] = [
     kind: "code",
     lang: "bash",
     title: "install",
-    content: "npm install physicalcontextprotocol",
+    content: "npm install @physicalcontextprotocol/sdk",
   },
-  { kind: "p", text: "Node 20 or newer, ESM. Types are generated from the same wire types the Python and Rust SDKs use — the schema is the source, the SDK is a projection." },
+  { kind: "p", text: "Node 20 or newer, ESM. Published to npm as [`@physicalcontextprotocol/sdk`](https://www.npmjs.com/package/@physicalcontextprotocol/sdk). Types are generated from the same wire types the Python and Rust SDKs use — the schema is the source, the SDK is a projection." },
 
   { kind: "h3", text: "Client construction" },
   {
     kind: "code",
     lang: "typescript",
     title: "client.ts",
-    content: `import { PCPServerClient } from "physicalcontextprotocol";
+    content: `import { PCPServerClient } from "@physicalcontextprotocol/sdk";
 
 const client = new PCPServerClient({
   transport: "http",
@@ -189,7 +189,7 @@ const wasHeld = await client.releaseLease(lease.lease_id);`,
     kind: "code",
     lang: "typescript",
     title: "server.ts",
-    content: `import { PCPServer, RateLimitMiddleware } from "physicalcontextprotocol";
+    content: `import { PCPServer, RateLimitMiddleware } from "@physicalcontextprotocol/sdk";
 
 const server = new PCPServer({
   name: "arm-01",
@@ -437,6 +437,137 @@ cargo test`,
   },
 ];
 
+/* ── C++ ─────────────────────────────────────────────────────────────────── */
+const cpp: Block[] = [
+  { kind: "h3", text: "Install" },
+  {
+    kind: "code",
+    lang: "bash",
+    title: "install",
+    content: `git clone https://github.com/physicalcontextprotocol/pmcp-cpp
+cmake -S pmcp-cpp -B pmcp-build -DPMCP_WITH_ROS2=OFF
+cmake --install pmcp-build`,
+  },
+  { kind: "p", text: "C++20, CMake 3.20 or newer. Headers live under `pmcp/` (`pmcp/client.hpp`, `pmcp/server.hpp`, `pmcp/safety.hpp`, `pmcp/dialect.hpp`). Consume the installed package with `find_package(pmcp REQUIRED)` and `target_link_libraries(... pmcp::pmcp)`, or vendor the source with `FetchContent`. There is no package-manager release yet — a vcpkg port is in review." },
+
+  { kind: "h3", text: "Client construction" },
+  {
+    kind: "code",
+    lang: "cpp",
+    title: "client.cpp",
+    content: `#include "pmcp/client.hpp"
+
+pmcp::Client::Config cfg;
+cfg.dialect = pmcp::Dialect::kPython;   // kSpec | kPython | kV05 | kConformance
+cfg.name = "my-client";
+pmcp::Client client(cfg);
+client.connect_http("http://127.0.0.1:7000/mcp");`,
+  },
+
+  { kind: "h3", text: "Lease methods" },
+  {
+    kind: "code",
+    lang: "cpp",
+    title: "leases",
+    content: `auto lease = client.request_lease("cell-north", "arm-01", 30'000);
+auto lease_id = lease["lease"]["lease_id"];
+// call_actuation carries the lease token; a gate refusal throws pmcp::Error
+auto out = client.call_actuation("move_to", {{"x", 0.4}, {"y", 0.0}, {"z", 0.2}},
+                                 lease_id);
+client.release_lease(lease_id);
+
+// safe_actuation runs the whole pipeline in one call:
+// shadow preview -> lease -> actuation -> release
+client.safe_actuation("move_to", {{"x", 0.4}, {"y", 0.0}, {"z", 0.2}}, "cell-north");`,
+  },
+
+  { kind: "h3", text: "Gate hooks (server side)" },
+  {
+    kind: "p",
+    text: "A `pmcp::Server` owns the safety pipeline; actuations are registered with their spec and a handler, and the gate order (E-stop → lease → constitution → shadow → execute) runs on every gated call:",
+  },
+  {
+    kind: "code",
+    lang: "cpp",
+    title: "server.cpp",
+    content: `#include "pmcp/server.hpp"
+
+pmcp::ServerConfig cfg;
+cfg.name = "arm-01";
+cfg.version = "1.0.0";
+cfg.robot_id = "arm-01";
+pmcp::Server server(cfg);
+
+pmcp::ActuationSpec move;
+move.name = "move_to";
+move.description = "Move the tool centre point to an XYZ target";
+move.max_speed_m_s = 1.0;             // m/s, non-normative default
+move.parameters = {
+    {"x", "number", "x target in metres"},
+    {"y", "number", "y target in metres"},
+    {"z", "number", "z target in metres"},
+};
+server.register_actuation(move, [](const pmcp::json& args) {
+    return pmcp::json{{"ok", true}};
+});
+
+server.listen_http(8080);   // serves /pcp, /mcp and / on the same socket`,
+  },
+
+  { kind: "h3", text: "Triggering E-Stop" },
+  {
+    kind: "code",
+    lang: "cpp",
+    content: `client.estop(true);        // latch; bypasses every gate
+client.estop_reset();      // explicit clear - the only path that resets it`,
+  },
+
+  { kind: "h3", text: "Error handling" },
+  {
+    kind: "p",
+    text: "A JSON-RPC error is raised as a `pmcp::Error` carrying a `pmcp::Code` — a blocked actuation (E-Stop, constitution, shadow) arrives here as `kEstopActive`, `kConstitutionBlocked`, and so on, not as an error-shaped result. Catch `pmcp::Error` and branch on its code.",
+  },
+  {
+    kind: "table",
+    codeFirstCol: true,
+    headers: ["code", "raised when"],
+    rows: [
+      ["`kShadowBlocked` (-33001)", "the shadow preview predicted an unsafe trajectory"],
+      ["`kConstitutionBlocked` (-33002)", "a constitution rule rejected the command"],
+      ["`kLeaseRequired` (-33003)", "zone lease denied or not held"],
+      ["`kLeaseExpired` (-33004)", "the held lease expired before actuation"],
+      ["`kEstopActive` (-33005)", "actuation attempted while the E-Stop latch is engaged"],
+      ["`kSpeedLimit` (-33007)", "command exceeded the declared speed limit"],
+      ["`kEnergyBudget` (-33008)", "command exceeded the declared energy budget"],
+    ],
+  },
+
+  { kind: "h3", text: "Language notes — four wire dialects, one binary" },
+  {
+    kind: "p",
+    text: "The reference SDKs do not all agree on the wire, and `pmcp-cpp` reconciles every in-flight dialect in a single binary. `Dialect::kAuto` (the default) answers each caller in the spelling it used; the four it understands are `kSpec` (`pmcp-spec` §7 — `actuations/call`, `lease/request`, `pmcp/estop`), `kPython` (`pmcp-python/pcp`), `kV05` (`pmcp-python/v05`, `pmcp-rust`, `pmcp-typescript`), and `kConformance` (`pmcp-conformance` — `actuations/execute`, `leases/acquire`, `safety/estop/engage`).",
+  },
+
+  { kind: "h3", text: "Tests and conformance" },
+  {
+    kind: "p",
+    text: "**72 unit tests passing, plus 17 interop checks** driven against the real `pmcp-python` client and server. To run them locally:",
+  },
+  {
+    kind: "code",
+    lang: "bash",
+    title: "run the suite",
+    content: `cd pmcp-cpp
+cmake -S . -B build -DPMCP_WITH_ROS2=OFF
+cmake --build build -j
+ctest --test-dir build --output-on-failure`,
+  },
+  {
+    kind: "p",
+    text: "The interop driver **skips** (rather than fails) when the sibling `pmcp-python` repo is absent. The shared [conformance suite](/conformance) run against a C++ server is pending — see [Conformance](/conformance).",
+  },
+];
+
 const tabsBlock = (defaultTab: string): Block => ({
   kind: "tabs",
   defaultTab,
@@ -444,13 +575,14 @@ const tabsBlock = (defaultTab: string): Block => ({
     { id: "python", label: "Python", blocks: py },
     { id: "typescript", label: "TypeScript", blocks: ts },
     { id: "rust", label: "Rust", blocks: rs },
+    { id: "cpp", label: "C++", blocks: cpp },
   ],
 });
 
 const intro: Block[] = [
   {
     kind: "p",
-    text: "All three SDKs implement the same wire format against the same schema, so their APIs mirror each other deliberately: same client construction, same lease methods, same gate hooks, same exception taxonomy with language-appropriate shapes. They are documented side by side — switch tabs to compare directly.",
+    text: "The Python, TypeScript, and Rust SDKs implement the same wire format against the same schema, so their APIs mirror each other deliberately: same client construction, same lease methods, same gate hooks, same exception taxonomy with language-appropriate shapes. The C++ SDK speaks the same protocol and additionally reconciles every in-flight dialect in one binary. They are all documented side by side — switch tabs to compare directly.",
   },
 ];
 
@@ -481,5 +613,15 @@ export const sdkRustPage: PageDef = {
     { kind: "h1", text: "SDKs — Rust" },
     ...intro,
     tabsBlock("rust"),
+  ],
+};
+
+export const sdkCppPage: PageDef = {
+  route: "/sdks/cpp",
+  title: "C++",
+  blocks: [
+    { kind: "h1", text: "SDKs — C++" },
+    ...intro,
+    tabsBlock("cpp"),
   ],
 };

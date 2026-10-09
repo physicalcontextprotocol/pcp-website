@@ -43,8 +43,8 @@ export const versioningPage: PageDef = {
       headers: ["artifact", "current", "where it lives"],
       rows: [
         ["Wire protocol version", "`0.5` — negotiated in the `initialize` handshake, echoed in the `X-PCP-Version` response header", "[Wire Format](/protocol/wire-format)"],
-        ["SDK versions", "per-repo SemVer — each of the nine repositories versions independently", "each repository's releases"],
-        ["Spec version", "tracked with the wire version; conformance is claimed per wire version", "[pmcp-spec](https://github.com/physicalcontextprotocol/pmcp-spec)"],
+        ["SDK versions", "per-repo SemVer — Python `1.0.0`, TypeScript `1.0.1`, Rust `1.0.0`, C++ `1.0.1`, each released independently", "each repository's releases"],
+        ["Spec version", "the `pmcp-spec` schema is `0.6.0`; the wire version it describes is `0.5`, and conformance is claimed per wire version", "[pmcp-spec](https://github.com/physicalcontextprotocol/pmcp-spec)"],
       ],
     },
     {
@@ -106,7 +106,7 @@ export const securityPage: PageDef = {
     { kind: "h2", text: "Scope" },
     {
       kind: "p",
-      text: "In scope: the protocol specification, the three SDKs, the conformance suite, the reference servers, and the registry service — everything in the [organization](https://github.com/physicalcontextprotocol)'s repositories. Wire-format design flaws (ways conforming messages can produce unsafe behavior) are in scope even when every implementation is correct, because the fix lands in the spec.",
+      text: "In scope: the protocol specification, the four SDKs, the conformance suite, the reference servers, and the registry service — everything in the [organization](https://github.com/physicalcontextprotocol)'s repositories. Wire-format design flaws (ways conforming messages can produce unsafe behavior) are in scope even when every implementation is correct, because the fix lands in the spec.",
     },
     {
       kind: "p",
@@ -128,17 +128,17 @@ export const contributingPage: PageDef = {
     { kind: "h1", text: "Contributing" },
     {
       kind: "p",
-      text: "PCP is an early-stage organization of nine repositories, and a lot of what \"contributing\" means is still shifting. What follows is the current guidance — the operative word being current. The full text lives in [`CONTRIBUTING.md`](https://github.com/physicalcontextprotocol/.github/blob/main/CONTRIBUTING.md) in the organization's community-health repository; this page summarizes it and links the parts that live elsewhere. Each repository also carries its own `CONTRIBUTING.md` with the local constraints.",
+      text: "PCP is an early-stage organization of ten repositories, and a lot of what \"contributing\" means is still shifting. What follows is the current guidance — the operative word being current. The full text lives in [`CONTRIBUTING.md`](https://github.com/physicalcontextprotocol/.github/blob/main/CONTRIBUTING.md) in the organization's community-health repository; this page summarizes it and links the parts that live elsewhere. Each repository also carries its own `CONTRIBUTING.md` with the local constraints.",
     },
 
     { kind: "h2", text: "Where the work lives" },
     {
       kind: "p",
-      text: "Each sub-project (`pmcp-spec/`, `pmcp-python/`, `pmcp-conformance/`, …) is designed to become its own repository. Until the split completes, changes go through the monorepo. **Keep your PR scoped to a single sub-project when you can** — cross-cutting changes (spec + Python + conformance in one PR) are acceptable but must be called out in the description, because they are harder to review and harder to revert.",
+      text: "Each sub-project (`pmcp-spec/`, `pmcp-python/`, `pmcp-conformance/`, …) is its own repository. **Open your PR against the repository you are changing and keep it scoped to that sub-project.** Cross-cutting changes (spec + Python + conformance, say) are acceptable but must be opened as separate PRs, or called out explicitly in the description when they genuinely have to land together — they are harder to review and harder to revert.",
     },
     {
       kind: "p",
-      text: "The sequencing that governs where attention goes: spec and conformance stabilize first, then the SDKs (Python → TypeScript → Rust), then servers, registry, and safety. `pmcp-labs` is quarantine — do not rely on it, and do not add new work there.",
+      text: "The sequencing that governs where attention goes: spec and conformance stabilize first, then the SDKs (Python → TypeScript → Rust → C++), then servers, registry, and safety. `pmcp-labs` is quarantine — do not rely on it, and do not add new work there.",
     },
 
     { kind: "h2", text: "High-value changes right now" },

@@ -12,7 +12,7 @@ export const protocolOverviewPage: PageDef = {
     },
     {
       kind: "p",
-      text: "The wire format lives in the [`pmcp-spec`](https://github.com/physicalcontextprotocol/pmcp-spec) repository. The three official SDKs — [Python](/sdks/python), [TypeScript](/sdks/typescript), [Rust](/sdks/rust) — are not the protocol; they are conforming clients for it, all validated against the same schema source of truth. A fourth SDK is not a fork of the protocol, it is another client. See [Conformance](/conformance) for what that claim has to mean before you make it.",
+      text: "The wire format lives in the [`pmcp-spec`](https://github.com/physicalcontextprotocol/pmcp-spec) repository. The four official SDKs — [Python](/sdks/python), [TypeScript](/sdks/typescript), [Rust](/sdks/rust), [C++](/sdks/cpp) — are not the protocol; they are conforming clients for it, all validated against the same schema source of truth. A fifth SDK is not a fork of the protocol, it is another client. See [Conformance](/conformance) for what that claim has to mean before you make it.",
     },
 
     { kind: "h2", text: "The gate sequence" },
@@ -166,7 +166,7 @@ export const protocolEstopPage: PageDef = {
     { kind: "h2", text: "Triggering and handling" },
     {
       kind: "p",
-      text: "Client side, the handler pattern in all three SDKs is the same shape — register before your first actuation, keep the callback fast, and treat the latch as sticky:",
+      text: "Client side, the handler pattern in all four SDKs is the same shape — register before your first actuation, keep the callback fast, and treat the latch as sticky:",
     },
     {
       kind: "code",
@@ -182,7 +182,7 @@ client.safety_estop_engage(reason="obstacle-in-cell")`,
     },
     {
       kind: "p",
-      text: "SDK-specific handler details: [Python](/sdks/python), [TypeScript](/sdks/typescript), [Rust](/sdks/rust).",
+      text: "SDK-specific handler details: [Python](/sdks/python), [TypeScript](/sdks/typescript), [Rust](/sdks/rust), [C++](/sdks/cpp).",
     },
   ],
 };

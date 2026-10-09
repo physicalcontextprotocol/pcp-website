@@ -12,6 +12,7 @@ import {
   sdkPythonPage,
   sdkTypescriptPage,
   sdkRustPage,
+  sdkCppPage,
 } from "./pages/sdks";
 import {
   conformancePage,
@@ -38,6 +39,7 @@ export const PAGES: PageDef[] = [
   sdkPythonPage,
   sdkTypescriptPage,
   sdkRustPage,
+  sdkCppPage,
   conformancePage,
   serversPage,
   registryPage,
@@ -70,6 +72,7 @@ export const NAV: NavItem[] = [
       { label: "Python", route: "/sdks/python" },
       { label: "TypeScript", route: "/sdks/typescript" },
       { label: "Rust", route: "/sdks/rust" },
+      { label: "C++", route: "/sdks/cpp" },
     ],
   },
   { label: "Conformance", route: "/conformance" },

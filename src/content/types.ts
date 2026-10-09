@@ -4,7 +4,7 @@
    from a single source.
    ──────────────────────────────────────────────────────────────────────────── */
 
-export type Lang = "python" | "typescript" | "rust" | "bash" | "json" | "text" | "toml";
+export type Lang = "python" | "typescript" | "rust" | "cpp" | "bash" | "json" | "text" | "toml";
 
 export interface CodeBlock {
   kind: "code";

@@ -84,11 +84,11 @@ const ts: Block[] = [
     kind: "code",
     lang: "bash",
     title: "install",
-    content: "npm install physicalcontextprotocol",
+    content: "npm install @physicalcontextprotocol/sdk",
   },
   {
     kind: "p",
-    text: "Node 20 or newer. Source lives in the [`pmcp-typescript`](https://github.com/physicalcontextprotocol/pmcp-typescript) repository. The SDK is currently build-verified with its test suite still being filled in — see [Conformance](/conformance) for the current status matrix.",
+    text: "Node 20 or newer. Published to npm as [`@physicalcontextprotocol/sdk`](https://www.npmjs.com/package/@physicalcontextprotocol/sdk); source lives in the [`pmcp-typescript`](https://github.com/physicalcontextprotocol/pmcp-typescript) repository. The SDK is currently build-verified with its test suite still being filled in — see [Conformance](/conformance) for the current status matrix.",
   },
 
   { kind: "h3", text: "Request a lease, handle denial, release" },
@@ -96,7 +96,7 @@ const ts: Block[] = [
     kind: "code",
     lang: "typescript",
     title: "lease.ts",
-    content: `import { PCPServerClient } from "physicalcontextprotocol";
+    content: `import { PCPServerClient } from "@physicalcontextprotocol/sdk";
 
 const client = new PCPServerClient({
   transport: "http",        // "stdio" | "websocket" | "http"
@@ -242,6 +242,71 @@ while let Some(message) = rx.recv().await {
   },
 ];
 
+/* ── C++ tab ────────────────────────────────────────────────────────────── */
+const cpp: Block[] = [
+  { kind: "h3", text: "Install" },
+  {
+    kind: "code",
+    lang: "bash",
+    title: "install",
+    content: `git clone https://github.com/physicalcontextprotocol/pmcp-cpp
+cmake -S pmcp-cpp -B pmcp-build -DPMCP_WITH_ROS2=OFF
+cmake --install pmcp-build     # installs pmcp::pmcp + a package config`,
+  },
+  {
+    kind: "p",
+    text: "C++20, CMake 3.20 or newer. Source lives in the [`pmcp-cpp`](https://github.com/physicalcontextprotocol/pmcp-cpp) repository. There is no package-manager release yet (a vcpkg port is in review), so consume it with `find_package(pmcp REQUIRED)` and link `pmcp::pmcp`, or vendor it with `FetchContent`.",
+  },
+
+  { kind: "h3", text: "Request a lease, handle denial, release" },
+  {
+    kind: "code",
+    lang: "cpp",
+    title: "lease.cpp",
+    content: `#include "pmcp/client.hpp"
+
+pmcp::Client::Config cfg;
+cfg.dialect = pmcp::Dialect::kPython;  // kSpec | kPython | kV05 | kConformance
+pmcp::Client client(cfg);
+client.connect_http("http://127.0.0.1:7000/mcp");
+
+// 1. acquire the zone you intend to act in
+auto lease = client.request_lease("cell-north", "arm-01", 30'000);
+auto lease_id = lease["lease"]["lease_id"];
+
+// 2. actuate. A gate refusal arrives as a thrown pmcp::Error, not an
+//    error-shaped result - catch it and back off, never around the gate.
+try {
+    auto out = client.call_actuation(
+        "move_to", {{"x", 0.4}, {"y", 0.0}, {"z", 0.2}}, lease_id);
+} catch (const pmcp::Error& e) {
+    // blocked: E-stop, lease, constitution or shadow
+}
+
+// 3. always release, including on error paths
+client.release_lease(lease_id);`,
+  },
+
+  { kind: "h3", text: "Engage E-Stop" },
+  {
+    kind: "p",
+    text: "`estop` is a first-class, lease-independent request — it latches on the server and bypasses the lease, constitution and shadow gates:",
+  },
+  {
+    kind: "code",
+    lang: "cpp",
+    title: "estop.cpp",
+    content: `client.estop(true);    // latch
+// drop to a safe state now; the latch holds until an explicit reset,
+// so never resume from inside a catch block
+client.estop_reset();  // release`,
+  },
+  {
+    kind: "p",
+    text: "Full API reference: [C++ SDK](/sdks/cpp). Runnable examples: [`pmcp-cpp/examples`](https://github.com/physicalcontextprotocol/pmcp-cpp) in the `pmcp-cpp` repository.",
+  },
+];
+
 export const quickstartPage: PageDef = {
   route: "/quickstart",
   title: "Quickstart",
@@ -249,11 +314,11 @@ export const quickstartPage: PageDef = {
     { kind: "h1", text: "Quickstart" },
     {
       kind: "p",
-      text: "Working code in under five minutes, per language. All three tabs do the same thing against the same wire format: connect, request a lease, handle denial honestly, release, and arm an E-Stop handler. A PCP server must be reachable at an HTTP endpoint — the reference servers in [`pmcp-servers`](/servers) are the fastest way to get one running.",
+      text: "Working code in under five minutes, per language. All four tabs do the same thing against the same wire format: connect, request a lease, handle denial honestly, release, and arm an E-Stop handler. A PCP server must be reachable at an HTTP endpoint — the reference servers in [`pmcp-servers`](/servers) are the fastest way to get one running.",
     },
     {
       kind: "p",
-      text: "The three SDKs are kept deliberately comparable: one JSON Schema 2020-12 source of truth, one conformance suite, three languages. If you know one, you should be able to read the others at a glance.",
+      text: "The four SDKs are kept deliberately comparable: one JSON Schema 2020-12 source of truth, one conformance suite, four languages. If you know one, you should be able to read the others at a glance.",
     },
     {
       kind: "tabs",
@@ -261,6 +326,7 @@ export const quickstartPage: PageDef = {
         { id: "python", label: "Python", blocks: py },
         { id: "typescript", label: "TypeScript", blocks: ts },
         { id: "rust", label: "Rust", blocks: rs },
+        { id: "cpp", label: "C++", blocks: cpp },
       ],
     },
   ],

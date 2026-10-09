@@ -70,6 +70,7 @@ pytest --asyncio-mode=auto -v`,
         ["Python", "conformant for 0.5 — the suite runs in blocking CI on every PR"],
         ["Rust", "wire coverage exercised by the pcp-core suite (43/43) and the conformance suite run manually against a Rust server"],
         ["TypeScript", "builds verified in CI; full conformance matrix run pending — the suite points at it the same way as any external implementation"],
+        ["C++", "wire coverage exercised by 72 unit tests and 17 interop checks against the real Python SDK; shared conformance suite run pending"],
       ],
     },
 
@@ -93,7 +94,7 @@ export const serversPage: PageDef = {
     { kind: "h1", text: "Servers" },
     {
       kind: "p",
-      text: "A \"PCP server\" is the side that owns the robot: it holds the lease store, runs the gates, speaks the wire format, and refuses anything the constitution or the latch says to refuse. In practice it is a process you run next to (or on) the robot controller, exposing a single JSON-RPC endpoint. Every SDK client — Python, TypeScript, Rust, or third-party — speaks to it the same way.",
+      text: "A \"PCP server\" is the side that owns the robot: it holds the lease store, runs the gates, speaks the wire format, and refuses anything the constitution or the latch says to refuse. In practice it is a process you run next to (or on) the robot controller, exposing a single JSON-RPC endpoint. Every SDK client — Python, TypeScript, Rust, C++, or third-party — speaks to it the same way.",
     },
     {
       kind: "p",
@@ -196,7 +197,7 @@ export const verificationPage: PageDef = {
     { kind: "h2", text: "Test status" },
     {
       kind: "p",
-      text: "[159/160 Python tests passing](https://github.com/physicalcontextprotocol/pmcp-python/actions) · [43/43 Rust tests passing](https://github.com/physicalcontextprotocol/pmcp-rust/actions) · [42/42 conformance tests passing](https://github.com/physicalcontextprotocol/pmcp-conformance/actions) — Python suite across the 3.9–3.12 matrix, conformance suite against the mock server, Rust suite in `physicalcontextprotocol`. The Python figure is 160 collected with 1 skip; every collected test imports the SDK and asserts on real behaviour — self-contained harnesses were moved out of the suite rather than counted. These run in blocking CI on every PR and every tag; the linked runs are the live state, not a screenshot of a good day. The tagged-release runs are the ones a conformance claim is anchored to.",
+      text: "[159/160 Python tests passing](https://github.com/physicalcontextprotocol/pmcp-python/actions) · [43/43 Rust tests passing](https://github.com/physicalcontextprotocol/pmcp-rust/actions) · [42/42 conformance tests passing](https://github.com/physicalcontextprotocol/pmcp-conformance/actions) · [72/72 C++ unit tests passing](https://github.com/physicalcontextprotocol/pmcp-cpp/actions) plus 17 interop checks against the real Python SDK — Python suite across the 3.9–3.12 matrix, conformance suite against the mock server, Rust suite in `physicalcontextprotocol`, C++ suite in `pmcp-cpp`. The Python figure is 160 collected with 1 skip; every collected test imports the SDK and asserts on real behaviour — self-contained harnesses were moved out of the suite rather than counted. These run in blocking CI on every PR and every tag; the linked runs are the live state, not a screenshot of a good day. The tagged-release runs are the ones a conformance claim is anchored to.",
     },
 
     { kind: "h2", text: "TLA+ model checking" },
