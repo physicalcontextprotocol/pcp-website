@@ -3,9 +3,12 @@
 /* ────────────────────────────────────────────────────────────────────────────
    PCP docs — pure black / white / one gray. No other colors. No gradients,
    no shadows, no rounded corners. Typography and whitespace only.
+   Two themes — dark (default) and light — selected via [data-theme] on <html>.
    ──────────────────────────────────────────────────────────────────────────── */
 
-:root {
+:root,
+[data-theme="dark"] {
+  color-scheme: dark;
   --bg: #000000;
   --fg: #ffffff;
   --dim: #b0b0b0;
@@ -13,13 +16,60 @@
   /* white at reduced opacity — still "white lines", used for hairlines */
   --line: rgba(255, 255, 255, 0.16);
   --line-strong: rgba(255, 255, 255, 0.34);
+  --soft: #e6e6e6;
+  --hover: #ffffff;
+  --focus: #ffffff;
+  --code-bg: #0a0a0a;
+  --panel-bg: #000000;
+  --active-bg: #0a0a0a;
+  --overlay: rgba(0, 0, 0, 0.85);
+  --ic-bg: rgba(255, 255, 255, 0.08);
+  --srchl-bg: rgba(255, 255, 255, 0.14);
+  --note-rule: #ffffff;
+  --scroll-thumb: #333333;
+  --tok-kw: #ffffff;
+  --tok-str: #b5b5b5;
+  --tok-com: #949494;
+  --tok-num: #9d9d9d;
+  --tok-fn: #f2f2f2;
+  --tok-attr: #c9c9c9;
+  --sel-bg: #ffffff;
+  --sel-fg: #000000;
   --font-mono-stack: "JetBrains Mono", ui-monospace, "SF Mono", "Menlo",
     "Consolas", "Liberation Mono", monospace;
 }
 
+[data-theme="light"] {
+  color-scheme: light;
+  --bg: #ffffff;
+  --fg: #0a0a0a;
+  --dim: #5a5a5a;
+  --dimmer: #8c8c8c;
+  --line: rgba(0, 0, 0, 0.16);
+  --line-strong: rgba(0, 0, 0, 0.34);
+  --soft: #1a1a1a;
+  --hover: #000000;
+  --focus: #000000;
+  --code-bg: #f6f6f6;
+  --panel-bg: #ffffff;
+  --active-bg: #efefef;
+  --overlay: rgba(255, 255, 255, 0.85);
+  --ic-bg: rgba(0, 0, 0, 0.06);
+  --srchl-bg: rgba(0, 0, 0, 0.12);
+  --note-rule: #000000;
+  --scroll-thumb: #c4c4c4;
+  --tok-kw: #000000;
+  --tok-str: #565656;
+  --tok-com: #8c8c8c;
+  --tok-num: #6a6a6a;
+  --tok-fn: #1a1a1a;
+  --tok-attr: #3f3f3f;
+  --sel-bg: #000000;
+  --sel-fg: #ffffff;
+}
+
 html {
   background: var(--bg);
-  color-scheme: dark;
 }
 
 .pcp-body {
@@ -35,21 +85,21 @@ html {
 }
 
 ::selection {
-  background: #ffffff;
-  color: #000000;
+  background: var(--sel-bg);
+  color: var(--sel-fg);
 }
 
 /* Scrollbars — thin, monochrome */
 * {
   scrollbar-width: thin;
-  scrollbar-color: #333 transparent;
+  scrollbar-color: var(--scroll-thumb) transparent;
 }
 *::-webkit-scrollbar {
   width: 6px;
   height: 6px;
 }
 *::-webkit-scrollbar-thumb {
-  background: #333;
+  background: var(--scroll-thumb);
 }
 *::-webkit-scrollbar-track {
   background: transparent;
@@ -67,7 +117,7 @@ a:hover {
 
 /* ── Inline code ─────────────────────────────────────────────────────────── */
 .pcp-body code.ic {
-  background: rgba(255, 255, 255, 0.08);
+  background: var(--ic-bg);
   color: var(--fg);
   padding: 0.1em 0.35em;
   font-size: 0.92em;
@@ -76,7 +126,7 @@ a:hover {
 
 /* ── Code blocks ─────────────────────────────────────────────────────────── */
 .codewrap {
-  background: #0a0a0a;
+  background: var(--code-bg);
   border: 1px solid var(--line);
   margin: 20px 0;
   position: relative;
@@ -104,7 +154,7 @@ a:hover {
   padding: 2px 6px;
 }
 .copybtn:hover {
-  color: #fff;
+  color: var(--hover);
 }
 .codewrap pre {
   margin: 0;
@@ -113,17 +163,17 @@ a:hover {
   font-size: 12.5px;
   line-height: 1.75;
   letter-spacing: 0;
-  color: #e6e6e6;
+  color: var(--soft);
   tab-size: 4;
 }
 
 /* Grayscale syntax tokens — dim colors on black, nothing loud */
-.tok-kw { color: #ffffff; font-weight: 500; }
-.tok-str { color: #b5b5b5; }
-.tok-com { color: #949494; font-style: italic; }
-.tok-num { color: #9d9d9d; }
-.tok-fn { color: #f2f2f2; }
-.tok-attr { color: #c9c9c9; }
+.tok-kw { color: var(--tok-kw); font-weight: 500; }
+.tok-str { color: var(--tok-str); }
+.tok-com { color: var(--tok-com); font-style: italic; }
+.tok-num { color: var(--tok-num); }
+.tok-fn { color: var(--tok-fn); }
+.tok-attr { color: var(--tok-attr); }
 
 /* ── Tables ──────────────────────────────────────────────────────────────── */
 .tblwrap {
@@ -153,7 +203,7 @@ table.pcp tbody td {
   border-bottom: 1px solid var(--line);
   padding: 8px 14px 8px 0;
   vertical-align: top;
-  color: #e6e6e6;
+  color: var(--soft);
 }
 table.pcp tbody td:first-child code.ic {
   background: transparent;
@@ -168,22 +218,22 @@ table.pcp tbody tr:last-child td {
   overflow-x: auto;
   margin: 24px 0;
   border: 1px solid var(--line);
-  background: #0a0a0a;
+  background: var(--code-bg);
 }
 .asciiwrap pre {
   margin: 0;
   padding: 20px 24px;
   font-size: 12px;
   line-height: 1.65;
-  color: #e6e6e6;
+  color: var(--soft);
 }
 
 /* ── Notes (bordered left rule, white) ───────────────────────────────────── */
 .note {
-  border-left: 1px solid #fff;
+  border-left: 1px solid var(--note-rule);
   padding: 4px 0 4px 16px;
   margin: 24px 0;
-  color: #e6e6e6;
+  color: var(--soft);
   font-size: 13px;
 }
 .note .notelabel {
@@ -217,11 +267,11 @@ table.pcp tbody tr:last-child td {
   white-space: nowrap;
 }
 .tabbtn:hover {
-  color: #fff;
+  color: var(--hover);
 }
 .tabbtn[aria-selected="true"] {
-  color: #fff;
-  border-bottom-color: #fff;
+  color: var(--hover);
+  border-bottom-color: var(--hover);
 }
 .tabpanel {
   padding-top: 20px;
@@ -252,7 +302,7 @@ table.pcp tbody tr:last-child td {
 }
 .linkrow a:hover::before,
 .linkrow a:hover {
-  color: #fff;
+  color: var(--hover);
 }
 .linkrow .linkdesc {
   color: var(--dim);
@@ -264,7 +314,7 @@ table.pcp tbody tr:last-child td {
 .searchinput {
   background: transparent;
   border: 1px solid var(--line);
-  color: #fff;
+  color: var(--fg);
   font-family: inherit;
   font-size: 12.5px;
   padding: 8px 10px 8px 28px;
@@ -273,7 +323,7 @@ table.pcp tbody tr:last-child td {
 }
 .searchinput:focus {
   outline: none;
-  border-color: #fff;
+  border-color: var(--focus);
 }
 .searchinput::placeholder {
   color: var(--dimmer);
@@ -286,13 +336,13 @@ table.pcp tbody tr:last-child td {
   align-items: flex-start;
   justify-content: center;
   padding: 10vh 16px 16px;
-  background: rgba(0, 0, 0, 0.85);
+  background: var(--overlay);
   backdrop-filter: blur(2px);
 }
 .searchpanel {
   width: 100%;
   max-width: 560px;
-  background: #000;
+  background: var(--panel-bg);
   border: 1px solid var(--line-strong);
 }
 .searchresult {
@@ -316,7 +366,7 @@ table.pcp tbody tr:last-child td {
   display: block;
 }
 .searchresult .sr-title {
-  color: #fff;
+  color: var(--fg);
   display: block;
   margin: 1px 0;
 }
@@ -329,12 +379,12 @@ table.pcp tbody tr:last-child td {
   text-overflow: ellipsis;
 }
 .searchresult[data-active="true"] {
-  border-left-color: #fff;
-  background: #0a0a0a;
+  border-left-color: var(--focus);
+  background: var(--active-bg);
 }
 .srchl {
-  color: #fff;
-  background: rgba(255, 255, 255, 0.14);
+  color: var(--fg);
+  background: var(--srchl-bg);
 }
 
 /* ── Sidebar nav ─────────────────────────────────────────────────────────── */
@@ -356,10 +406,10 @@ table.pcp tbody tr:last-child td {
   white-space: nowrap;
 }
 .navitem:hover {
-  color: #fff;
+  color: var(--hover);
 }
 .navitem[aria-current="page"] {
-  color: #fff;
+  color: var(--hover);
   font-weight: 500;
 }
 .navgroup-label {
@@ -378,7 +428,7 @@ table.pcp tbody tr:last-child td {
   cursor: pointer;
 }
 .navgroup-label:hover {
-  color: #fff;
+  color: var(--hover);
 }
 .navgroup-label .twist {
   color: var(--dimmer);
@@ -400,11 +450,11 @@ table.pcp tbody tr:last-child td {
   margin-left: -1px;
 }
 .onpage a:hover {
-  color: #fff;
+  color: var(--hover);
 }
 .onpage a.active {
-  color: #fff;
-  border-left-color: #fff;
+  color: var(--hover);
+  border-left-color: var(--focus);
 }
 .onpage .oplabel {
   color: var(--dimmer);
@@ -414,9 +464,24 @@ table.pcp tbody tr:last-child td {
   margin-bottom: 6px;
 }
 
+/* ── Header icon button (theme toggle, etc.) ─────────────────────────────── */
+.iconbtn {
+  background: none;
+  border: 0;
+  color: var(--dim);
+  cursor: pointer;
+  padding: 4px;
+  line-height: 0;
+  display: inline-flex;
+  align-items: center;
+}
+.iconbtn:hover {
+  color: var(--hover);
+}
+
 /* ── Focus visibility (keyboard only) ────────────────────────────────────── */
 :focus-visible {
-  outline: 1px solid #fff;
+  outline: 1px solid var(--focus);
   outline-offset: 2px;
 }
 

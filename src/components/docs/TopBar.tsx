@@ -5,21 +5,55 @@ import { Logo } from "./Logo";
 export const PCP_VERSION = "v0.5";
 export const GITHUB_ORG = "https://github.com/physicalcontextprotocol";
 
+function MoonIcon() {
+  return (
+    <svg width="17" height="17" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+      <path
+        d="M20 13.2A8.2 8.2 0 0 1 10.8 4a7.4 7.4 0 1 0 9.2 9.2Z"
+        stroke="currentColor"
+        strokeWidth="1.4"
+        strokeLinejoin="round"
+      />
+    </svg>
+  );
+}
+
+function SunIcon() {
+  return (
+    <svg width="17" height="17" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+      <circle cx="12" cy="12" r="4.2" stroke="currentColor" strokeWidth="1.4" />
+      <line x1="12" y1="1.8" x2="12" y2="4.2" stroke="currentColor" strokeWidth="1.4" />
+      <line x1="12" y1="19.8" x2="12" y2="22.2" stroke="currentColor" strokeWidth="1.4" />
+      <line x1="1.8" y1="12" x2="4.2" y2="12" stroke="currentColor" strokeWidth="1.4" />
+      <line x1="19.8" y1="12" x2="22.2" y2="12" stroke="currentColor" strokeWidth="1.4" />
+      <line x1="4.7" y1="4.7" x2="6.4" y2="6.4" stroke="currentColor" strokeWidth="1.4" />
+      <line x1="17.6" y1="17.6" x2="19.3" y2="19.3" stroke="currentColor" strokeWidth="1.4" />
+      <line x1="19.3" y1="4.7" x2="17.6" y2="6.4" stroke="currentColor" strokeWidth="1.4" />
+      <line x1="6.4" y1="17.6" x2="4.7" y2="19.3" stroke="currentColor" strokeWidth="1.4" />
+    </svg>
+  );
+}
+
 export function TopBar({
   onMenu,
   onSearch,
+  onToggleTheme,
   menuOpen,
   searchOpen,
+  theme,
   menuButtonRef,
   searchButtonRef,
 }: {
   onMenu: () => void;
   onSearch: () => void;
+  onToggleTheme: () => void;
   menuOpen: boolean;
   searchOpen: boolean;
+  theme: "dark" | "light";
   menuButtonRef?: React.Ref<HTMLButtonElement>;
   searchButtonRef?: React.Ref<HTMLButtonElement>;
 }) {
+  const goingTo = theme === "dark" ? "light" : "dark";
   return (
     <header
       style={{
@@ -29,7 +63,7 @@ export function TopBar({
         right: 0,
         height: 52,
         zIndex: 50,
-        background: "#000",
+        background: "var(--bg)",
         borderBottom: "1px solid var(--line-strong)",
       }}
     >
@@ -55,7 +89,7 @@ export function TopBar({
             style={{
               background: "none",
               border: 0,
-              color: "#fff",
+              color: "var(--fg)",
               cursor: "pointer",
               padding: 4,
               marginLeft: -4,
@@ -64,9 +98,9 @@ export function TopBar({
             className="md:hidden"
           >
             <svg width="18" height="18" viewBox="0 0 18 18" fill="none" aria-hidden="true">
-              <line x1="1" y1="4" x2="17" y2="4" stroke="#fff" strokeWidth="1.2" />
-              <line x1="1" y1="9" x2="17" y2="9" stroke="#fff" strokeWidth="1.2" />
-              <line x1="1" y1="14" x2="17" y2="14" stroke="#fff" strokeWidth="1.2" />
+              <line x1="1" y1="4" x2="17" y2="4" stroke="currentColor" strokeWidth="1.2" />
+              <line x1="1" y1="9" x2="17" y2="9" stroke="currentColor" strokeWidth="1.2" />
+              <line x1="1" y1="14" x2="17" y2="14" stroke="currentColor" strokeWidth="1.2" />
             </svg>
           </button>
           <a
@@ -76,6 +110,7 @@ export function TopBar({
               alignItems: "center",
               gap: 10,
               textDecoration: "none",
+              color: "var(--fg)",
             }}
           >
             <Logo size={19} />
@@ -91,8 +126,17 @@ export function TopBar({
           </a>
         </div>
 
-        {/* right: search trigger + GitHub + version */}
+        {/* right: theme toggle + search trigger + GitHub + version */}
         <div style={{ display: "flex", alignItems: "center", gap: 18 }}>
+          <button
+            type="button"
+            onClick={onToggleTheme}
+            className="iconbtn"
+            aria-label={`Switch to ${goingTo} theme`}
+            title={`Switch to ${goingTo} theme`}
+          >
+            {theme === "dark" ? <SunIcon /> : <MoonIcon />}
+          </button>
           <button
             type="button"
             onClick={onSearch}
@@ -134,7 +178,7 @@ export function TopBar({
               textDecoration: "none",
               letterSpacing: "0.02em",
             }}
-            onMouseEnter={(e) => (e.currentTarget.style.color = "#fff")}
+            onMouseEnter={(e) => (e.currentTarget.style.color = "var(--fg)")}
             onMouseLeave={(e) => (e.currentTarget.style.color = "var(--dim)")}
           >
             GitHub

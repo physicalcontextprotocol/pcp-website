@@ -7,6 +7,7 @@ import { SearchOverlay } from "./Search";
 import { BlockRenderer } from "./BlockRenderer";
 import { buildIndex, queryIndex } from "@/lib/searchIndex";
 import { trapTab, focusFirstWithin } from "@/lib/focus";
+import { toggleTheme, useTheme } from "@/lib/theme";
 import { NAV, PAGES } from "@/content";
 
 /* Hash is either a page route ("#/protocol/gates"), a bare heading anchor
@@ -35,6 +36,7 @@ export function DocsApp() {
   const [menuOpen, setMenuOpen] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
   const [query, setQuery] = useState("");
+  const theme = useTheme();
   const [activeHeading, setActiveHeading] = useState<string | null>(null);
   // authoritative route for the hashchange listener — avoids stale closures
   const routeRef = useRef<string | null>(null);
@@ -185,8 +187,10 @@ export function DocsApp() {
       <TopBar
         onMenu={openMenu}
         onSearch={openSearch}
+        onToggleTheme={toggleTheme}
         menuOpen={menuOpen}
         searchOpen={searchOpen}
+        theme={theme}
         menuButtonRef={menuButtonRef}
         searchButtonRef={searchButtonRef}
       />
@@ -215,7 +219,7 @@ export function DocsApp() {
             position: "fixed",
             inset: 0,
             zIndex: 55,
-            background: "rgba(0,0,0,0.85)",
+            background: "var(--overlay)",
           }}
           onMouseDown={(e) => {
             if (e.target === e.currentTarget) {
@@ -236,7 +240,7 @@ export function DocsApp() {
               left: 0,
               bottom: 0,
               width: 272,
-              background: "#000",
+              background: "var(--panel-bg)",
               borderRight: "1px solid var(--line-strong)",
               overflowY: "auto",
               padding: "20px 16px 40px",

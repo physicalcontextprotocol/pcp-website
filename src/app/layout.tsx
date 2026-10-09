@@ -18,17 +18,24 @@ export const metadata: Metadata = {
 };
 
 export const viewport: Viewport = {
-  themeColor: "#000000",
+  themeColor: [
+    { media: "(prefers-color-scheme: dark)", color: "#000000" },
+    { media: "(prefers-color-scheme: light)", color: "#ffffff" },
+  ],
   width: "device-width",
   initialScale: 1,
 };
+
+/* Runs before first paint so the stored theme is applied without a flash. */
+const THEME_SCRIPT = `(function(){var t;try{t=localStorage.getItem('pcp-theme')}catch(e){}document.documentElement.setAttribute('data-theme',t==='light'?'light':'dark')})();`;
 
 export default function RootLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
   return (
-    <html lang="en" suppressHydrationWarning>
+    <html lang="en" suppressHydrationWarning data-theme="dark">
       <head>
+        <script dangerouslySetInnerHTML={{ __html: THEME_SCRIPT }} />
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link
           rel="preconnect"
