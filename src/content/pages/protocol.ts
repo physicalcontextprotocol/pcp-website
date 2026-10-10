@@ -12,7 +12,7 @@ export const protocolOverviewPage: PageDef = {
     },
     {
       kind: "p",
-      text: "The wire format lives in the [`pmcp-spec`](https://github.com/physicalcontextprotocol/pmcp-spec) repository. The four official SDKs — [Python](/sdks/python), [TypeScript](/sdks/typescript), [Rust](/sdks/rust), [C++](/sdks/cpp) — are not the protocol; they are conforming clients for it, all validated against the same schema source of truth. A fifth SDK is not a fork of the protocol, it is another client. See [Conformance](/conformance) for what that claim has to mean before you make it.",
+      text: "The wire format lives in the [`pcp-spec`](https://github.com/physicalcontextprotocol/pcp-spec) repository. The four official SDKs — [Python](/sdks/python), [TypeScript](/sdks/typescript), [Rust](/sdks/rust), [C++](/sdks/cpp) — are not the protocol; they are conforming clients for it, all validated against the same schema source of truth. A fifth SDK is not a fork of the protocol, it is another client. See [Conformance](/conformance) for what that claim has to mean before you make it.",
     },
 
     { kind: "h2", text: "The gate sequence" },
@@ -373,14 +373,14 @@ export const protocolWireFormatPage: PageDef = {
         ["-32601", "Method not found — also used for unknown actuation or sensor names"],
         ["-32602", "Invalid params"],
         ["-32603", "Internal error"],
-        ["-33000 … -33999", "The P-MCP application error range — lease denials, gate rejections, latch refusals, and every protocol-defined failure. Reserved for PCP; implementations must not use this range for their own non-protocol errors"],
+        ["-33000 … -33999", "The PCP application error range — lease denials, gate rejections, latch refusals, and every protocol-defined failure. Reserved for PCP; implementations must not use this range for their own non-protocol errors"],
       ],
     },
 
     { kind: "h2", text: "JSON Schema 2020-12" },
     {
       kind: "p",
-      text: "The normative definition of every message lives as JSON Schema 2020-12 files in [`pmcp-spec/schema/`](https://github.com/physicalcontextprotocol/pmcp-spec). The shared data types (`$defs`) are published; the per-method request/response schemas are being hand-extracted from the canonical types into per-method files. That extraction is deliberately slow work: schemas are being written once the duplicate client implementations in `pmcp-python` are consolidated, so the schema does not accidentally codify one of four divergent type definitions as the truth. Track the progress in the [`pmcp-spec`](https://github.com/physicalcontextprotocol/pmcp-spec) repository.",
+      text: "The normative definition of every message lives as JSON Schema 2020-12 files in [`pcp-spec/schema/`](https://github.com/physicalcontextprotocol/pcp-spec). The shared data types (`$defs`) are published; the per-method request/response schemas are being hand-extracted from the canonical types into per-method files. That extraction is deliberately slow work: schemas are being written once the duplicate client implementations in `pcp-python` are consolidated, so the schema does not accidentally codify one of four divergent type definitions as the truth. Track the progress in the [`pcp-spec`](https://github.com/physicalcontextprotocol/pcp-spec) repository.",
     },
     {
       kind: "note",

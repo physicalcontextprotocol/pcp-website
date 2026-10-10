@@ -7,7 +7,7 @@ export const conformancePage: PageDef = {
     { kind: "h1", text: "Conformance" },
     {
       kind: "p",
-      text: "\"PCP Conformant\" has exactly one meaning: **the implementation passes the shared conformance suite against the wire-format schema.** Not \"inspired by PCP\", not \"PCP-compatible\" in the marketing sense — the suite is a public, versioned artifact in the [`pmcp-conformance`](https://github.com/physicalcontextprotocol/pmcp-conformance) repository, and its verdict is the claim. If a vendor's README says conformant and the suite says otherwise, the suite is right.",
+      text: "\"PCP Conformant\" has exactly one meaning: **the implementation passes the shared conformance suite against the wire-format schema.** Not \"inspired by PCP\", not \"PCP-compatible\" in the marketing sense — the suite is a public, versioned artifact in the [`pcp-conformance`](https://github.com/physicalcontextprotocol/pcp-conformance) repository, and its verdict is the claim. If a vendor's README says conformant and the suite says otherwise, the suite is right.",
     },
     {
       kind: "p",
@@ -29,7 +29,7 @@ export const conformancePage: PageDef = {
         ["3 — Sensors", "7", "`sensors/list`, `sensors/read`, response schema, unknown-sensor error path"],
         ["4 — Leases", "6", "acquire / release / re-acquire, double-acquire protection, expiry semantics"],
         ["5 — Metrics + Ping", "7", "required fields on `pcp/metrics` and `pcp/ping`, E-Stop engage / disengage semantics"],
-        ["6 — Error codes", "7", "the P-MCP range (−33999…−33000), JSON-RPC 2.0 standard codes, response well-formedness"],
+        ["6 — Error codes", "7", "the PCP range (−33999…−33000), JSON-RPC 2.0 standard codes, response well-formedness"],
       ],
     },
 
@@ -43,8 +43,8 @@ export const conformancePage: PageDef = {
       lang: "bash",
       title: "run against a real server",
       content: `# 1. install the suite
-git clone https://github.com/physicalcontextprotocol/pmcp-conformance
-cd pmcp-conformance
+git clone https://github.com/physicalcontextprotocol/pcp-conformance
+cd pcp-conformance
 pip install -e .
 
 # 2. launch your implementation on an HTTP endpoint, e.g.
@@ -98,7 +98,7 @@ export const serversPage: PageDef = {
     },
     {
       kind: "p",
-      text: "Reference servers live in the [`pmcp-servers`](https://github.com/physicalcontextprotocol/pmcp-servers) repository. They are working code, not specifications: read them to see the gate sequence wired up end to end, or run them as the backend for your first client experiments.",
+      text: "Reference servers live in the [`pcp-servers`](https://github.com/physicalcontextprotocol/pcp-servers) repository. They are working code, not specifications: read them to see the gate sequence wired up end to end, or run them as the backend for your first client experiments.",
     },
 
     { kind: "h2", text: "Reference servers" },
@@ -153,7 +153,7 @@ export const registryPage: PageDef = {
     { kind: "h2", text: "Listing your server" },
     {
       kind: "p",
-      text: "The registry itself is a small service (`api_server.py`) in the [`pmcp-registry`](https://github.com/physicalcontextprotocol/pmcp-registry) repository. Listing is an HTTP call to its `register/*` endpoints with your server's descriptor: endpoint URL, robot id, robot class, protocol version, and a contact. Re-registration refreshes the entry; entries are keyed by endpoint.",
+      text: "The registry itself is a small service (`api_server.py`) in the [`pcp-registry`](https://github.com/physicalcontextprotocol/pcp-registry) repository. Listing is an HTTP call to its `register/*` endpoints with your server's descriptor: endpoint URL, robot id, robot class, protocol version, and a contact. Re-registration refreshes the entry; entries are keyed by endpoint.",
     },
     {
       kind: "code",
@@ -173,7 +173,7 @@ export const registryPage: PageDef = {
     {
       kind: "note",
       label: "honest state — do not expose the public API yet",
-      text: "The registry currently has **no authentication, no request-size limits, CORS `*` on POST/DELETE, and no host/port allowlist on `register/*`** — it is written up in the org's known-limitations list, and it must not be exposed to untrusted networks in this state. For the same reason the `pmcp-registry` repository is **held private rather than published**: it is a discovery daemon you run yourself, not a curated public registry, and open write endpoints plus `CORS *` is not something to put on the internet under that name. Run it inside your own perimeter until the auth and validation work lands; track the remaining work in the [`pmcp-registry`](https://github.com/physicalcontextprotocol/pmcp-registry) repository, which becomes public once it earns it.",
+      text: "The registry currently has **no authentication, no request-size limits, CORS `*` on POST/DELETE, and no host/port allowlist on `register/*`** — it is written up in the org's known-limitations list, and it must not be exposed to untrusted networks in this state. For the same reason the `pcp-registry` repository is **held private rather than published**: it is a discovery daemon you run yourself, not a curated public registry, and open write endpoints plus `CORS *` is not something to put on the internet under that name. Run it inside your own perimeter until the auth and validation work lands; track the remaining work in the [`pcp-registry`](https://github.com/physicalcontextprotocol/pcp-registry) repository, which becomes public once it earns it.",
     },
 
     { kind: "h2", text: "Scope" },
@@ -197,7 +197,7 @@ export const verificationPage: PageDef = {
     { kind: "h2", text: "Test status" },
     {
       kind: "p",
-      text: "[159/160 Python tests passing](https://github.com/physicalcontextprotocol/pmcp-python/actions) · [43/43 Rust tests passing](https://github.com/physicalcontextprotocol/pmcp-rust/actions) · [42/42 conformance tests passing](https://github.com/physicalcontextprotocol/pmcp-conformance/actions) · [72/72 C++ unit tests passing](https://github.com/physicalcontextprotocol/pmcp-cpp/actions) plus 17 interop checks against the real Python SDK — Python suite across the 3.9–3.12 matrix, conformance suite against the mock server, Rust suite in `physicalcontextprotocol`, C++ suite in `pmcp-cpp`. The Python figure is 160 collected with 1 skip; every collected test imports the SDK and asserts on real behaviour — self-contained harnesses were moved out of the suite rather than counted. These run in blocking CI on every PR and every tag; the linked runs are the live state, not a screenshot of a good day. The tagged-release runs are the ones a conformance claim is anchored to.",
+      text: "[159/160 Python tests passing](https://github.com/physicalcontextprotocol/pcp-python/actions) · [43/43 Rust tests passing](https://github.com/physicalcontextprotocol/pcp-rust/actions) · [42/42 conformance tests passing](https://github.com/physicalcontextprotocol/pcp-conformance/actions) · [72/72 C++ unit tests passing](https://github.com/physicalcontextprotocol/pcp-cpp/actions) plus 17 interop checks against the real Python SDK — Python suite across the 3.9–3.12 matrix, conformance suite against the mock server, Rust suite in `physicalcontextprotocol`, C++ suite in `pcp-cpp`. The Python figure is 160 collected with 1 skip; every collected test imports the SDK and asserts on real behaviour — self-contained harnesses were moved out of the suite rather than counted. These run in blocking CI on every PR and every tag; the linked runs are the live state, not a screenshot of a good day. The tagged-release runs are the ones a conformance claim is anchored to.",
     },
 
     { kind: "h2", text: "TLA+ model checking" },
@@ -216,7 +216,7 @@ export const verificationPage: PageDef = {
     },
     {
       kind: "p",
-      text: "Spec files live in the [`pmcp-spec`](https://github.com/physicalcontextprotocol/pmcp-spec) repository. Model checking covers the protocol's control logic — the state machines, the ordering, the recovery. It does not cover physics, hardware, or the numeric honesty of a particular deployment's constitution thresholds; those are the [limitations](/limitations) page's territory.",
+      text: "Spec files live in the [`pcp-spec`](https://github.com/physicalcontextprotocol/pcp-spec) repository. Model checking covers the protocol's control logic — the state machines, the ordering, the recovery. It does not cover physics, hardware, or the numeric honesty of a particular deployment's constitution thresholds; those are the [limitations](/limitations) page's territory.",
     },
 
     { kind: "h2", text: "Checking the model checker — mutant testing" },
@@ -243,7 +243,7 @@ export const verificationPage: PageDef = {
       ordered: true,
       items: [
         "The conformance suite ERRORED at collection — stale imports of a pre-migration package path in five test files, invisible in review, fatal in pytest.",
-        "Six `console_scripts` entry points in `pmcp-python` were broken twice over — their target modules had moved during the repo split, and they had been async coroutines that could never run as console scripts.",
+        "Six `console_scripts` entry points in `pcp-python` were broken twice over — their target modules had moved during the repo split, and they had been async coroutines that could never run as console scripts.",
         "The built wheel shipped a wrong package set — 19 `packages.find` include patterns, most naming packages that no longer existed; the wheel's contents disagreed with the source tree.",
         "`readme` pointed at `docs/README.md`, a path that does not exist in the split repository — a publish-time failure, not a build-time one.",
         "The protocol spec contradicted itself on gate order — §13.3 still showed the old Shadow → Constitution sequence after the rest of the spec had been corrected to E-Stop → Lease → Constitution → Shadow.",

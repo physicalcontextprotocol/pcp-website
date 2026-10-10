@@ -22,7 +22,7 @@ export const governancePage: PageDef = {
     },
     {
       kind: "p",
-      text: "What exists today and can be verified rather than promised: decisions are recorded in the open — the org [CHANGELOG](https://github.com/physicalcontextprotocol/.github/blob/main/CHANGELOG.md) and [MIGRATION_MAP](https://github.com/physicalcontextprotocol/pmcp-spec/blob/main/MIGRATION_MAP.md) document what changed and why, including the migration sequencing decisions that shaped the current repo layout. Until a formal governance document replaces this page, those artifacts plus the repository history are the authoritative record of how decisions were actually made.",
+      text: "What exists today and can be verified rather than promised: decisions are recorded in the open — the org [CHANGELOG](https://github.com/physicalcontextprotocol/.github/blob/main/CHANGELOG.md) and [MIGRATION_MAP](https://github.com/physicalcontextprotocol/pcp-spec/blob/main/MIGRATION_MAP.md) document what changed and why, including the migration sequencing decisions that shaped the current repo layout. Until a formal governance document replaces this page, those artifacts plus the repository history are the authoritative record of how decisions were actually made.",
     },
   ],
 };
@@ -44,12 +44,12 @@ export const versioningPage: PageDef = {
       rows: [
         ["Wire protocol version", "`0.5` — negotiated in the `initialize` handshake, echoed in the `X-PCP-Version` response header", "[Wire Format](/protocol/wire-format)"],
         ["SDK versions", "per-repo SemVer — Python `1.0.0`, TypeScript `1.0.1`, Rust `1.0.0`, C++ `1.0.1`, each released independently", "each repository's releases"],
-        ["Spec version", "the `pmcp-spec` schema is `0.6.0`; the wire version it describes is `0.5`, and conformance is claimed per wire version", "[pmcp-spec](https://github.com/physicalcontextprotocol/pmcp-spec)"],
+        ["Spec version", "the `pcp-spec` schema is `0.6.0`; the wire version it describes is `0.5`, and conformance is claimed per wire version", "[pcp-spec](https://github.com/physicalcontextprotocol/pcp-spec)"],
       ],
     },
     {
       kind: "p",
-      text: "The org-level rule already in force: semantic versioning applies **per sub-project, not to the org as a whole** — there is no version of \"PCP the organization\", there are versions of `pmcp-python`, `pmcp-typescript`, `pcp-core`, and the shared wire format they conform to. This is the same pattern the MCP organization uses, deliberately.",
+      text: "The org-level rule already in force: semantic versioning applies **per sub-project, not to the org as a whole** — there is no version of \"PCP the organization\", there are versions of `pcp-python`, `pcp-typescript`, `pcp-core`, and the shared wire format they conform to. This is the same pattern the MCP organization uses, deliberately.",
     },
 
     {
@@ -134,22 +134,22 @@ export const contributingPage: PageDef = {
     { kind: "h2", text: "Where the work lives" },
     {
       kind: "p",
-      text: "Each sub-project (`pmcp-spec/`, `pmcp-python/`, `pmcp-conformance/`, …) is its own repository. **Open your PR against the repository you are changing and keep it scoped to that sub-project.** Cross-cutting changes (spec + Python + conformance, say) are acceptable but must be opened as separate PRs, or called out explicitly in the description when they genuinely have to land together — they are harder to review and harder to revert.",
+      text: "Each sub-project (`pcp-spec/`, `pcp-python/`, `pcp-conformance/`, …) is its own repository. **Open your PR against the repository you are changing and keep it scoped to that sub-project.** Cross-cutting changes (spec + Python + conformance, say) are acceptable but must be opened as separate PRs, or called out explicitly in the description when they genuinely have to land together — they are harder to review and harder to revert.",
     },
     {
       kind: "p",
-      text: "The sequencing that governs where attention goes: spec and conformance stabilize first, then the SDKs (Python → TypeScript → Rust → C++), then servers, registry, and safety. `pmcp-labs` is quarantine — do not rely on it, and do not add new work there.",
+      text: "The sequencing that governs where attention goes: spec and conformance stabilize first, then the SDKs (Python → TypeScript → Rust → C++), then servers, registry, and safety. `pcp-labs` is quarantine — do not rely on it, and do not add new work there.",
     },
 
     { kind: "h2", text: "High-value changes right now" },
     {
       kind: "list",
       items: [
-        "consolidation of the duplicate `PCPServer` / `PCPClient` / `ShadowPreview` implementations across `pmcp-python`'s internal trees — the org's declared top cleanup priority",
-        "populating the per-method JSON Schemas under `pmcp-spec/schema/` (the shared `$defs` exist; the method-level files are the gap)",
-        "a real driver for `pmcp-conformance` so it can validate external implementations, not just the in-process mock",
-        "authentication and input validation on `pmcp-registry` (see the warning on [Registry](/registry))",
-        "replacing the mock TEE backend in `pmcp-safety` with a real SGX / SEV-SNP / TDX verification path",
+        "consolidation of the duplicate `PCPServer` / `PCPClient` / `ShadowPreview` implementations across `pcp-python`'s internal trees — the org's declared top cleanup priority",
+        "populating the per-method JSON Schemas under `pcp-spec/schema/` (the shared `$defs` exist; the method-level files are the gap)",
+        "a real driver for `pcp-conformance` so it can validate external implementations, not just the in-process mock",
+        "authentication and input validation on `pcp-registry` (see the warning on [Registry](/registry))",
+        "replacing the mock TEE backend in `pcp-safety` with a real SGX / SEV-SNP / TDX verification path",
       ],
     },
 
@@ -159,12 +159,12 @@ export const contributingPage: PageDef = {
       lang: "bash",
       title: "the two blocking suites",
       content: `# Python SDK
-cd pmcp-python
+cd pcp-python
 pip install -e ".[dev,numerics]"
 pytest --asyncio-mode=auto
 
 # conformance suite
-cd pmcp-conformance
+cd pcp-conformance
 pip install -e .
 pytest --asyncio-mode=auto -v`,
     },
@@ -194,7 +194,7 @@ pytest --asyncio-mode=auto -v`,
     {
       kind: "placeholder",
       title: "RFC process",
-      body: "The RFC process for proposing a new SDK or a protocol change does not exist yet. Until it does, protocol-level proposals go through the issue tracker of `pmcp-spec` with the \"protocol-change\" label, and the bar is the conformance suite: a proposal that cannot say what the suite would test is not ready. This section becomes the RFC document when that lands.",
+      body: "The RFC process for proposing a new SDK or a protocol change does not exist yet. Until it does, protocol-level proposals go through the issue tracker of `pcp-spec` with the \"protocol-change\" label, and the bar is the conformance suite: a proposal that cannot say what the suite would test is not ready. This section becomes the RFC document when that lands.",
       willCover: [
         "the RFC template: problem, wire-format impact, conformance impact, migration path",
         "the review cadence and who accepts an RFC (see [Governance](/governance) for the decision model it plugs into)",

@@ -11,7 +11,7 @@ const py: Block[] = [
   },
   {
     kind: "p",
-    text: "Python 3.9 or newer. The package publishes to PyPI from the [`pmcp-python`](https://github.com/physicalcontextprotocol/pmcp-python) repository on every `v*.*.*` tag.",
+    text: "Python 3.9 or newer. The package publishes to PyPI from the [`pcp-python`](https://github.com/physicalcontextprotocol/pcp-python) repository on every `v*.*.*` tag.",
   },
 
   { kind: "h3", text: "Request a lease, handle denial, release" },
@@ -73,7 +73,7 @@ await client.estop(source="operator_console")
   },
   {
     kind: "p",
-    text: "Full API reference: [Python SDK](/sdks/python). Runnable examples: [`pmcp-servers/examples`](https://github.com/physicalcontextprotocol/pmcp-servers) in the `pmcp-servers` repository.",
+    text: "Full API reference: [Python SDK](/sdks/python). Runnable examples: [`pcp-servers/examples`](https://github.com/physicalcontextprotocol/pcp-servers) in the `pcp-servers` repository.",
   },
 ];
 
@@ -88,7 +88,7 @@ const ts: Block[] = [
   },
   {
     kind: "p",
-    text: "Node 20 or newer. Published to npm as [`@physicalcontextprotocol/sdk`](https://www.npmjs.com/package/@physicalcontextprotocol/sdk); source lives in the [`pmcp-typescript`](https://github.com/physicalcontextprotocol/pmcp-typescript) repository. The SDK is currently build-verified with its test suite still being filled in — see [Conformance](/conformance) for the current status matrix.",
+    text: "Node 20 or newer. Published to npm as [`@physicalcontextprotocol/sdk`](https://www.npmjs.com/package/@physicalcontextprotocol/sdk); source lives in the [`pcp-typescript`](https://github.com/physicalcontextprotocol/pcp-typescript) repository. The SDK is currently build-verified with its test suite still being filled in — see [Conformance](/conformance) for the current status matrix.",
   },
 
   { kind: "h3", text: "Request a lease, handle denial, release" },
@@ -145,7 +145,7 @@ await client.setEstop(false);  // release`,
   },
   {
     kind: "p",
-    text: "Full API reference: [TypeScript SDK](/sdks/typescript). Runnable examples: [`pmcp-servers/examples`](https://github.com/physicalcontextprotocol/pmcp-servers) in the `pmcp-servers` repository.",
+    text: "Full API reference: [TypeScript SDK](/sdks/typescript). Runnable examples: [`pcp-servers/examples`](https://github.com/physicalcontextprotocol/pcp-servers) in the `pcp-servers` repository.",
   },
 ];
 
@@ -160,7 +160,7 @@ const rs: Block[] = [
   },
   {
     kind: "p",
-    text: "Source lives in the [`pmcp-rust`](https://github.com/physicalcontextprotocol/pmcp-rust) repository (`physicalcontextprotocol` crate). Rust's async client is `Clone` — the correct concurrency pattern is documented in [Rust SDK notes](/sdks/rust).",
+    text: "Source lives in the [`pcp-rust`](https://github.com/physicalcontextprotocol/pcp-rust) repository (`physicalcontextprotocol` crate). Rust's async client is `Clone` — the correct concurrency pattern is documented in [Rust SDK notes](/sdks/rust).",
   },
 
   { kind: "h3", text: "Request a lease, handle denial, release" },
@@ -238,7 +238,7 @@ while let Some(message) = rx.recv().await {
   },
   {
     kind: "p",
-    text: "Full API reference: [Rust SDK](/sdks/rust). Runnable examples: [`pmcp-servers/examples`](https://github.com/physicalcontextprotocol/pmcp-servers) in the `pmcp-servers` repository.",
+    text: "Full API reference: [Rust SDK](/sdks/rust). Runnable examples: [`pcp-servers/examples`](https://github.com/physicalcontextprotocol/pcp-servers) in the `pcp-servers` repository.",
   },
 ];
 
@@ -249,13 +249,13 @@ const cpp: Block[] = [
     kind: "code",
     lang: "bash",
     title: "install",
-    content: `git clone https://github.com/physicalcontextprotocol/pmcp-cpp
-cmake -S pmcp-cpp -B pmcp-build -DPMCP_WITH_ROS2=OFF
+    content: `git clone https://github.com/physicalcontextprotocol/pcp-cpp
+cmake -S pcp-cpp -B pmcp-build -DPMCP_WITH_ROS2=OFF
 cmake --install pmcp-build     # installs pmcp::pmcp + a package config`,
   },
   {
     kind: "p",
-    text: "C++20, CMake 3.20 or newer. Source lives in the [`pmcp-cpp`](https://github.com/physicalcontextprotocol/pmcp-cpp) repository. There is no package-manager release yet (a vcpkg port is in review), so consume it with `find_package(pmcp REQUIRED)` and link `pmcp::pmcp`, or vendor it with `FetchContent`.",
+    text: "C++20, CMake 3.20 or newer. Source lives in the [`pcp-cpp`](https://github.com/physicalcontextprotocol/pcp-cpp) repository. There is no package-manager release yet (a vcpkg port is in review), so consume it with `find_package(pmcp REQUIRED)` and link `pmcp::pmcp`, or vendor it with `FetchContent`.",
   },
 
   { kind: "h3", text: "Request a lease, handle denial, release" },
@@ -303,7 +303,7 @@ client.estop_reset();  // release`,
   },
   {
     kind: "p",
-    text: "Full API reference: [C++ SDK](/sdks/cpp). Runnable examples: [`pmcp-cpp/examples`](https://github.com/physicalcontextprotocol/pmcp-cpp) in the `pmcp-cpp` repository.",
+    text: "Full API reference: [C++ SDK](/sdks/cpp). Runnable examples: [`pcp-cpp/examples`](https://github.com/physicalcontextprotocol/pcp-cpp) in the `pcp-cpp` repository.",
   },
 ];
 
@@ -314,7 +314,7 @@ export const quickstartPage: PageDef = {
     { kind: "h1", text: "Quickstart" },
     {
       kind: "p",
-      text: "Working code in under five minutes, per language. All four tabs do the same thing against the same wire format: connect, request a lease, handle denial honestly, release, and arm an E-Stop handler. A PCP server must be reachable at an HTTP endpoint — the reference servers in [`pmcp-servers`](/servers) are the fastest way to get one running.",
+      text: "Working code in under five minutes, per language. All four tabs do the same thing against the same wire format: connect, request a lease, handle denial honestly, release, and arm an E-Stop handler. A PCP server must be reachable at an HTTP endpoint — the reference servers in [`pcp-servers`](/servers) are the fastest way to get one running.",
     },
     {
       kind: "p",

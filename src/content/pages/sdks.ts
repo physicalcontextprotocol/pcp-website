@@ -110,7 +110,7 @@ await client.estop(source="operator_console")`,
   { kind: "h3", text: "Language notes" },
   {
     kind: "p",
-    text: "The package currently ships parallel implementations under `pcp/`, `sdk/`, and `v05/` — an inheritance of the pre-split monorepo, [flagged in the org's migration map](https://github.com/physicalcontextprotocol/pmcp-spec/blob/main/MIGRATION_MAP.md) with consolidation as the top-priority cleanup. Until the canonical implementation is chosen, target the `v05` namespaces in new code: they speak the current wire version, and they are what CI's smoke-import step pins.",
+    text: "The package currently ships parallel implementations under `pcp/`, `sdk/`, and `v05/` — an inheritance of the pre-split monorepo, [flagged in the org's migration map](https://github.com/physicalcontextprotocol/pcp-spec/blob/main/MIGRATION_MAP.md) with consolidation as the top-priority cleanup. Until the canonical implementation is chosen, target the `v05` namespaces in new code: they speak the current wire version, and they are what CI's smoke-import step pins.",
   },
 
   { kind: "h3", text: "Tests and conformance" },
@@ -122,11 +122,11 @@ await client.estop(source="operator_console")`,
     kind: "code",
     lang: "bash",
     title: "run the suite",
-    content: `cd pmcp-python
+    content: `cd pcp-python
 pip install -e ".[dev,numerics]"
 pytest --asyncio-mode=auto
 
-cd ../pmcp-conformance
+cd ../pcp-conformance
 pip install -e .
 pytest --asyncio-mode=auto -v`,
   },
@@ -263,7 +263,7 @@ await client.setEstop(false);`,
     kind: "code",
     lang: "bash",
     title: "build and typecheck",
-    content: `cd pmcp-typescript
+    content: `cd pcp-typescript
 npm install --no-audit --no-fund
 npm run build`,
   },
@@ -282,12 +282,12 @@ const rs: Block[] = [
     title: "install",
     content: "cargo add physicalcontextprotocol",
   },
-  { kind: "p", text: "The `physicalcontextprotocol` crate from the [`pmcp-rust`](https://github.com/physicalcontextprotocol/pmcp-rust) repository. Tokio-based async runtime." },
+  { kind: "p", text: "The `physicalcontextprotocol` crate from the [`pcp-rust`](https://github.com/physicalcontextprotocol/pcp-rust) repository. Tokio-based async runtime." },
 
   { kind: "h3", text: "Client construction" },
   {
     kind: "p",
-    text: "There is no high-level client type. The crate ships transports, and you drive JSON-RPC over the channels `Transport::connect` returns. A runnable two-process example is in [`pcp-core/examples/server_and_client.rs`](https://github.com/physicalcontextprotocol/pmcp-rust/blob/main/pcp-core/examples/server_and_client.rs).",
+    text: "There is no high-level client type. The crate ships transports, and you drive JSON-RPC over the channels `Transport::connect` returns. A runnable two-process example is in [`pcp-core/examples/server_and_client.rs`](https://github.com/physicalcontextprotocol/pcp-rust/blob/main/pcp-core/examples/server_and_client.rs).",
   },
   {
     kind: "code",
@@ -428,7 +428,7 @@ while let Some(message) = rx.recv().await {
     kind: "code",
     lang: "bash",
     title: "run the suite",
-    content: `cd pmcp-rust/pcp-core
+    content: `cd pcp-rust/pcp-core
 cargo test`,
   },
   {
@@ -444,8 +444,8 @@ const cpp: Block[] = [
     kind: "code",
     lang: "bash",
     title: "install",
-    content: `git clone https://github.com/physicalcontextprotocol/pmcp-cpp
-cmake -S pmcp-cpp -B pmcp-build -DPMCP_WITH_ROS2=OFF
+    content: `git clone https://github.com/physicalcontextprotocol/pcp-cpp
+cmake -S pcp-cpp -B pmcp-build -DPMCP_WITH_ROS2=OFF
 cmake --install pmcp-build`,
   },
   { kind: "p", text: "C++20, CMake 3.20 or newer. Headers live under `pmcp/` (`pmcp/client.hpp`, `pmcp/server.hpp`, `pmcp/safety.hpp`, `pmcp/dialect.hpp`). Consume the installed package with `find_package(pmcp REQUIRED)` and `target_link_libraries(... pmcp::pmcp)`, or vendor the source with `FetchContent`. There is no package-manager release yet — a vcpkg port is in review." },
@@ -545,26 +545,26 @@ client.estop_reset();      // explicit clear - the only path that resets it`,
   { kind: "h3", text: "Language notes — four wire dialects, one binary" },
   {
     kind: "p",
-    text: "The reference SDKs do not all agree on the wire, and `pmcp-cpp` reconciles every in-flight dialect in a single binary. `Dialect::kAuto` (the default) answers each caller in the spelling it used; the four it understands are `kSpec` (`pmcp-spec` §7 — `actuations/call`, `lease/request`, `pmcp/estop`), `kPython` (`pmcp-python/pcp`), `kV05` (`pmcp-python/v05`, `pmcp-rust`, `pmcp-typescript`), and `kConformance` (`pmcp-conformance` — `actuations/execute`, `leases/acquire`, `safety/estop/engage`).",
+    text: "The reference SDKs do not all agree on the wire, and `pcp-cpp` reconciles every in-flight dialect in a single binary. `Dialect::kAuto` (the default) answers each caller in the spelling it used; the four it understands are `kSpec` (`pcp-spec` §7 — `actuations/call`, `lease/request`, `pmcp/estop`), `kPython` (`pcp-python/pcp`), `kV05` (`pcp-python/v05`, `pcp-rust`, `pcp-typescript`), and `kConformance` (`pcp-conformance` — `actuations/execute`, `leases/acquire`, `safety/estop/engage`).",
   },
 
   { kind: "h3", text: "Tests and conformance" },
   {
     kind: "p",
-    text: "**72 unit tests passing, plus 17 interop checks** driven against the real `pmcp-python` client and server. To run them locally:",
+    text: "**72 unit tests passing, plus 17 interop checks** driven against the real `pcp-python` client and server. To run them locally:",
   },
   {
     kind: "code",
     lang: "bash",
     title: "run the suite",
-    content: `cd pmcp-cpp
+    content: `cd pcp-cpp
 cmake -S . -B build -DPMCP_WITH_ROS2=OFF
 cmake --build build -j
 ctest --test-dir build --output-on-failure`,
   },
   {
     kind: "p",
-    text: "The interop driver **skips** (rather than fails) when the sibling `pmcp-python` repo is absent. The shared [conformance suite](/conformance) run against a C++ server is pending — see [Conformance](/conformance).",
+    text: "The interop driver **skips** (rather than fails) when the sibling `pcp-python` repo is absent. The shared [conformance suite](/conformance) run against a C++ server is pending — see [Conformance](/conformance).",
   },
 ];
 
